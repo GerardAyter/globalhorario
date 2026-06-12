@@ -1,0 +1,34 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class VacationBalance extends Model
+{
+    use HasFactory;
+
+    protected $table = 'vacation_balances';
+
+    protected $fillable = [
+        'user_id',
+        'year',
+        'generated_days',
+        'taken_days',
+        'pending_days',
+        'carried_from_previous',
+        'expiry_date_carried',
+        'manual_adjustment',
+        'adjustment_reason',
+    ];
+
+    protected $casts = [
+        'generated_days' => 'decimal:2',
+        'taken_days' => 'decimal:2',
+        'pending_days' => 'decimal:2',
+        'carried_from_previous' => 'decimal:2',
+        'manual_adjustment' => 'decimal:2',
+        'expiry_date_carried' => 'date',
+    ];
+}
