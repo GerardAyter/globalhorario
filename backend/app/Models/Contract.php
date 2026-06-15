@@ -4,15 +4,19 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Traits\HasTenant;
 
 class Contract extends Model
 {
     use HasFactory;
+    use HasTenant;
 
     protected $table = 'contracts';
 
     protected $fillable = [
+        'tenant_id',
         'user_id',
+        'employee_id',
         'type',
         'work_time',
         'weekly_hours',
@@ -35,5 +39,15 @@ class Contract extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function employee()
+    {
+        return $this->belongsTo(Employee::class);
+    }
+
+    public function tenant()
+    {
+        return $this->belongsTo(Tenant::class);
     }
 }

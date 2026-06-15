@@ -4,14 +4,17 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Traits\HasTenant;
 
 class AuditLog extends Model
 {
     use HasFactory;
+    use HasTenant;
 
     protected $table = 'audit_logs';
 
     protected $fillable = [
+        'tenant_id',
         'user_id',
         'action',
         'entity',

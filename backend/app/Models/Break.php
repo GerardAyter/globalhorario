@@ -4,15 +4,19 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Traits\HasTenant;
 
 class Break extends Model
 {
     use HasFactory;
+    use HasTenant;
 
     protected $table = 'breaks';
 
     protected $fillable = [
+        'tenant_id',
         'time_entry_id',
+        'employee_id',
         'start_at',
         'end_at',
         'type',
@@ -28,5 +32,15 @@ class Break extends Model
     public function timeEntry()
     {
         return $this->belongsTo(TimeEntry::class);
+    }
+
+    public function employee()
+    {
+        return $this->belongsTo(Employee::class);
+    }
+
+    public function tenant()
+    {
+        return $this->belongsTo(Tenant::class);
     }
 }

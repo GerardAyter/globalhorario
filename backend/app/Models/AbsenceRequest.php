@@ -4,15 +4,24 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Traits\HasTenant;
 
 class AbsenceRequest extends Model
 {
     use HasFactory;
+    use HasTenant;
+
+    const STATUS_PENDING = 'pending';
+    const STATUS_APPROVED = 'approved';
+    const STATUS_DENIED = 'denied';
+    const STATUS_CANCELLED = 'cancelled';
 
     protected $table = 'absence_requests';
 
     protected $fillable = [
+        'tenant_id',
         'user_id',
+        'employee_id',
         'absence_type_id',
         'start_date',
         'end_date',
@@ -41,8 +50,18 @@ class AbsenceRequest extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function employee()
+    {
+        return $this->belongsTo(Employee::class);
+    }
+
     public function type()
     {
         return $this->belongsTo(AbsenceType::class, 'absence_type_id');
+    }
+
+    public function tenant()
+    {
+        return $this->belongsTo(Tenant::class);
     }
 }

@@ -4,14 +4,17 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Traits\HasTenant;
 
 class OvertimePolicy extends Model
 {
     use HasFactory;
+    use HasTenant;
 
     protected $table = 'overtime_policies';
 
     protected $fillable = [
+        'tenant_id',
         'company_id',
         'name',
         'annual_limit',

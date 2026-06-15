@@ -4,14 +4,17 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Traits\HasTenant;
 
 class Shift extends Model
 {
     use HasFactory;
+    use HasTenant;
 
     protected $table = 'shifts';
 
     protected $fillable = [
+        'tenant_id',
         'name',
         'company_id',
         'color',

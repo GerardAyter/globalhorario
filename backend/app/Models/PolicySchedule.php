@@ -4,14 +4,17 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Traits\HasTenant;
 
 class PolicySchedule extends Model
 {
     use HasFactory;
+    use HasTenant;
 
     protected $table = 'policy_schedules';
 
     protected $fillable = [
+        'tenant_id',
         'company_id',
         'name',
         'type',

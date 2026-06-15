@@ -4,15 +4,19 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Traits\HasTenant;
 
 class Payroll extends Model
 {
     use HasFactory;
+    use HasTenant;
 
     protected $table = 'payrolls';
 
     protected $fillable = [
+        'tenant_id',
         'user_id',
+        'employee_id',
         'month',
         'year',
         'ordinary_hours',
@@ -37,4 +41,9 @@ class Payroll extends Model
         'employer_social_security' => 'decimal:2',
         'net_salary' => 'decimal:2',
     ];
+
+    public function employee()
+    {
+        return $this->belongsTo(Employee::class);
+    }
 }

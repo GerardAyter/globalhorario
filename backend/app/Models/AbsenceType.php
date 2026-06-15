@@ -4,14 +4,17 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Traits\HasTenant;
 
 class AbsenceType extends Model
 {
     use HasFactory;
+    use HasTenant;
 
     protected $table = 'absence_types';
 
     protected $fillable = [
+        'tenant_id',
         'name',
         'company_id',
         'category',

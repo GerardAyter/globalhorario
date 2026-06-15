@@ -4,14 +4,17 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Traits\HasTenant;
 
 class WorkCalendar extends Model
 {
     use HasFactory;
+    use HasTenant;
 
     protected $table = 'work_calendars';
 
     protected $fillable = [
+        'tenant_id',
         'company_id',
         'year',
         'national_holidays',
@@ -28,5 +31,10 @@ class WorkCalendar extends Model
     public function company()
     {
         return $this->belongsTo(Company::class);
+    }
+
+    public function tenant()
+    {
+        return $this->belongsTo(Tenant::class);
     }
 }
