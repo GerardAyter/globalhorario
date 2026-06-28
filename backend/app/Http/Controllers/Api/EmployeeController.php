@@ -18,7 +18,11 @@ class EmployeeController extends BaseController
 
     public function index(Request $request)
     {
-        $data = $this->service->list($request->all());
+        $user      = $request->user();
+        $companyId = $user->company_id ?? $user->employee?->company_id;
+        $filters   = $companyId ? ['company_id' => $companyId] : [];
+
+        $data = $this->service->list($filters);
         return $this->success($data);
     }
 
@@ -33,13 +37,23 @@ class EmployeeController extends BaseController
 
     public function store(EmployeeStoreRequest $request)
     {
-        $item = $this->service->create($request->validated());
-        return $this->success($item, 'Employee created', null, 201);
+        $user      = $request->user();
+        $companyId = $user->company_id ?? $user->employee?->company_id;
+
+        if (! $companyId) {
+            return $this->error("El vostre compte no té cap empresa associada", null, 403);
+        }
+
+        $data               = $request->validated();
+        $data['company_id'] = $companyId;
+
+        $item = $this->service->create($data);
+        return $this->success($this->service->find($item->id), 'Employee created', null, 201);
     }
 
-    public function update(EmployeeUpdateRequest $request, $id)
+    public function update(EmployeeUpdateRequest $request, int $id)
     {
-        $item = $this->service->find((int)$id);
+        $item = $this->service->find($id);
         if (! $item) {
             return $this->error('Employee not found', null, 404);
         }
@@ -47,17 +61,22 @@ class EmployeeController extends BaseController
         return $this->success($item, 'Employee updated');
     }
 
-    public function destroy($id)
+    public function destroy(int $id)
     {
-        $item = $this->service->find((int)$id);
+        $item = $this->service->find($id);
         if (! $item) {
             return $this->error('Employee not found', null, 404);
         }
+
+        if ($item->user && $item->user->role === 'admin') {
+            return $this->error("No es pot eliminar l'empleat administrador de l'empresa", null, 403);
+        }
+
         $this->service->delete($item);
         return $this->success(null, 'Employee deleted', null, 204);
     }
 
-    public function timeEntries($id)
+    public function timeEntries(int $id)
     {
         $data = $this->service->timeEntries((int)$id);
         if ($data === null) {

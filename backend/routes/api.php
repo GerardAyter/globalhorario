@@ -1,51 +1,72 @@
 <?php
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CompanyController;
 use App\Http\Controllers\Api\DepartmentController;
+use App\Http\Controllers\Api\WorkplaceController;
 use App\Http\Controllers\Api\TimeEntryController;
 use App\Http\Controllers\Api\ShiftController;
-
-use App\Http\Middleware\SetTenantFromRequest;
-
 use App\Http\Controllers\Api\TenantController;
 use App\Http\Controllers\Api\WhitelabelConfigController;
 
-Route::prefix('v1')->group(function () {
-    // Tenant management endpoints are public of the tenant-middleware so they can be created/managed from admin
-    Route::apiResource('tenants', TenantController::class);
-    Route::apiResource('whitelabel-configs', WhitelabelConfigController::class);
+// ── Públic ──────────────────────────────────────────────────────────────────
+Route::post('auth/login', [AuthController::class, 'login']);
 
-    // Other resources (tenant middleware applied globally)
-    Route::apiResource('companies', CompanyController::class);
-    Route::apiResource('departments', DepartmentController::class);
-    Route::apiResource('employees', \App\Http\Controllers\Api\EmployeeController::class);
-    Route::get('employees/{id}/time-entries', [\App\Http\Controllers\Api\EmployeeController::class, 'timeEntries']);
-    Route::apiResource('shifts', ShiftController::class);
-    Route::apiResource('time-entries', TimeEntryController::class);
-    // HR resources
-    Route::apiResource('absence-types', \App\Http\Controllers\Api\AbsenceTypeController::class);
-    Route::apiResource('absence-requests', \App\Http\Controllers\Api\AbsenceRequestController::class);
-    Route::post('absence-requests/{id}/approve', [\App\Http\Controllers\Api\AbsenceRequestController::class, 'approve']);
-    Route::post('absence-requests/{id}/deny', [\App\Http\Controllers\Api\AbsenceRequestController::class, 'deny']);
+// ── Autenticat ──────────────────────────────────────────────────────────────
+Route::middleware('auth:sanctum')->group(function () {
 
-    Route::apiResource('vacation-balances', \App\Http\Controllers\Api\VacationBalanceController::class);
+    Route::get('auth/me', [AuthController::class, 'me']);
+    Route::patch('auth/profile', [AuthController::class, 'updateProfile']);
 
-    Route::apiResource('overtime-policies', \App\Http\Controllers\Api\OvertimePolicyController::class);
-    Route::apiResource('overtimes', \App\Http\Controllers\Api\OvertimeController::class);
-    Route::post('overtimes/{id}/approve', [\App\Http\Controllers\Api\OvertimeController::class, 'approve']);
+    Route::prefix('v1')->group(function () {
 
-    Route::apiResource('policy-absences', \App\Http\Controllers\Api\PolicyAbsenceController::class);
-    Route::apiResource('policy-schedules', \App\Http\Controllers\Api\PolicyScheduleController::class);
-    Route::apiResource('work-calendars', \App\Http\Controllers\Api\WorkCalendarController::class);
+        // ── Founder ─────────────────────────────────────────────────────────
+        // Gestió global de tenants i configuració whitelabel
+        Route::middleware('role:founder')->group(function () {
+            Route::apiResource('tenants', TenantController::class);
+            Route::apiResource('whitelabel-configs', WhitelabelConfigController::class);
+        });
 
-    Route::apiResource('contracts', \App\Http\Controllers\Api\ContractController::class);
-    Route::apiResource('payrolls', \App\Http\Controllers\Api\PayrollController::class);
+        // ── Superadmin+ ─────────────────────────────────────────────────────
+        // Gestió d'empreses dins del tenant
+        Route::middleware('role:superadmin')->group(function () {
+            Route::apiResource('companies', CompanyController::class);
+        });
 
-    Route::apiResource('shift-conflicts', \App\Http\Controllers\Api\ShiftConflictController::class);
-    Route::post('shift-conflicts/{id}/resolve', [\App\Http\Controllers\Api\ShiftConflictController::class, 'resolve']);
+        // ── Admin+ ──────────────────────────────────────────────────────────
+        // Gestió completa d'una empresa: estructura, torns, polítiques, nòmines
+        Route::middleware('role:admin')->group(function () {
+            Route::apiResource('departments', DepartmentController::class);
+            Route::apiResource('workplaces', WorkplaceController::class);
+            Route::apiResource('shifts', ShiftController::class);
+            Route::apiResource('absence-types', \App\Http\Controllers\Api\AbsenceTypeController::class);
+            Route::apiResource('overtime-policies', \App\Http\Controllers\Api\OvertimePolicyController::class);
+            Route::apiResource('policy-absences', \App\Http\Controllers\Api\PolicyAbsenceController::class);
+            Route::apiResource('policy-schedules', \App\Http\Controllers\Api\PolicyScheduleController::class);
+            Route::apiResource('work-calendars', \App\Http\Controllers\Api\WorkCalendarController::class);
+            Route::apiResource('contracts', \App\Http\Controllers\Api\ContractController::class);
+            Route::apiResource('payrolls', \App\Http\Controllers\Api\PayrollController::class);
+            Route::apiResource('shift-conflicts', \App\Http\Controllers\Api\ShiftConflictController::class);
+            Route::post('shift-conflicts/{id}/resolve', [\App\Http\Controllers\Api\ShiftConflictController::class, 'resolve']);
+        });
 
-    Route::apiResource('shift-assignments', \App\Http\Controllers\Api\ShiftAssignmentController::class);
-    // Additional resources will be registered as implemented
+        // ── HR+ ─────────────────────────────────────────────────────────────
+        // Gestió d'empleats, assignacions de torn, saldos i aprovació de peticions
+        Route::middleware('role:hr')->group(function () {
+            Route::apiResource('employees', \App\Http\Controllers\Api\EmployeeController::class);
+            Route::get('employees/{id}/time-entries', [\App\Http\Controllers\Api\EmployeeController::class, 'timeEntries']);
+            Route::apiResource('vacation-balances', \App\Http\Controllers\Api\VacationBalanceController::class);
+            Route::apiResource('shift-assignments', \App\Http\Controllers\Api\ShiftAssignmentController::class);
+            Route::post('absence-requests/{id}/approve', [\App\Http\Controllers\Api\AbsenceRequestController::class, 'approve']);
+            Route::post('absence-requests/{id}/deny', [\App\Http\Controllers\Api\AbsenceRequestController::class, 'deny']);
+            Route::post('overtimes/{id}/approve', [\App\Http\Controllers\Api\OvertimeController::class, 'approve']);
+        });
+
+        // ── User+ ───────────────────────────────────────────────────────────
+        // Fitxatge, sol·licituds i hores extra (els controllers filtren per propietat)
+        Route::apiResource('time-entries', TimeEntryController::class);
+        Route::apiResource('absence-requests', \App\Http\Controllers\Api\AbsenceRequestController::class);
+        Route::apiResource('overtimes', \App\Http\Controllers\Api\OvertimeController::class);
+    });
 });

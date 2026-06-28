@@ -16,7 +16,14 @@ class Company extends Model
     protected $fillable = [
         'tenant_id',
         'name',
+        'nom_legal',
         'tax_id',
+        'adreca_facturacio',
+        'telefon',
+        'email_contacte',
+        'persona_contacte',
+        'logo_url',
+        'favicon_url',
         'timezone',
         'country',
         'collective_agreement',
@@ -30,6 +37,16 @@ class Company extends Model
     public function departments()
     {
         return $this->hasMany(Department::class);
+    }
+
+    public function employees()
+    {
+        return $this->hasMany(Employee::class);
+    }
+
+    public function planFlags()
+    {
+        return $this->hasMany(CompanyPlanFlag::class);
     }
 
     public function tenant()

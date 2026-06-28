@@ -6,58 +6,43 @@ use App\Models\Company;
 
 class CompanyService extends BaseService
 {
-    /**
-     * List companies with optional filters.
-     *
-     * @param array $filters
-     * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator
-     */
     public function list(array $filters = [])
     {
-        return Company::query()->paginate(20);
+        $perPage = min((int)($filters['per_page'] ?? 20), 200);
+        return Company::query()
+            ->withCount('employees')
+            ->with([
+                'planFlags' => fn ($q) => $q->where('actiu', true)->select('id', 'tenant_id', 'company_id', 'feature'),
+            ])
+            ->orderByDesc('id')
+            ->paginate($perPage);
     }
 
-    /**
-     * Find a company by id.
-     *
-     * @param int $id
-     * @return Company|null
-     */
     public function find(int $id): ?Company
     {
         return Company::find($id);
     }
 
-    /**
-     * Create a new company.
-     *
-     * @param array $data
-     * @return Company
-     */
+    public function findWithRelations(int $id): ?Company
+    {
+        return Company::with([
+            'planFlags' => fn ($q) => $q->where('actiu', true)->select('id', 'tenant_id', 'company_id', 'feature'),
+        ])
+        ->withCount('employees')
+        ->find($id);
+    }
+
     public function create(array $data): Company
     {
         return Company::create($data);
     }
 
-    /**
-     * Update an existing company.
-     *
-     * @param Company $company
-     * @param array $data
-     * @return Company
-     */
     public function update(Company $company, array $data): Company
     {
         $company->update($data);
         return $company;
     }
 
-    /**
-     * Delete a company.
-     *
-     * @param Company $company
-     * @return bool
-     */
     public function delete(Company $company): bool
     {
         return $company->delete();

@@ -12,9 +12,16 @@ class TenantService extends BaseService
      * @param array $filters
      * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator
      */
-    public function list(array $filters = [])
+    public function list(array $filters = []) // $filters reserved for future use
     {
-        return Tenant::query()->paginate(20);
+        return Tenant::query()
+            ->with([
+                'whitelabel:id,tenant_id,nom_producte,logo_url,favicon_url',
+                'planFeatureFlags' => fn ($q) => $q->where('actiu', true)->select('id', 'tenant_id', 'feature'),
+            ])
+            ->withCount('companies')
+            ->orderByDesc('id')
+            ->paginate(20);
     }
 
     /**
@@ -26,6 +33,16 @@ class TenantService extends BaseService
     public function find(int $id): ?Tenant
     {
         return Tenant::find($id);
+    }
+
+    public function findWithRelations(int $id): ?Tenant
+    {
+        return Tenant::with([
+            'whitelabel:id,tenant_id,nom_producte,logo_url,favicon_url',
+            'planFeatureFlags' => fn ($q) => $q->select('id', 'tenant_id', 'feature', 'actiu'),
+        ])
+        ->withCount('companies')
+        ->find($id);
     }
 
     /**

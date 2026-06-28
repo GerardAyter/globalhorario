@@ -18,13 +18,17 @@ class DepartmentController extends BaseController
 
     public function index(Request $request)
     {
-        $data = $this->service->list($request->all());
-        return $this->success($data);
+        $user      = $request->user();
+        $companyId = $user->company_id ?? $user->employee?->company_id;
+        $filters   = $request->all();
+        if ($companyId) $filters['company_id'] = $companyId;
+
+        return $this->success($this->service->list($filters));
     }
 
-    public function show($id)
+    public function show(int $id)
     {
-        $item = $this->service->find((int)$id);
+        $item = $this->service->find($id);
         if (! $item) {
             return $this->error('Department not found', null, 404);
         }
@@ -33,13 +37,22 @@ class DepartmentController extends BaseController
 
     public function store(DepartmentStoreRequest $request)
     {
-        $item = $this->service->create($request->validated());
-        return $this->success($item, 'Department created', null, 201);
+        $user      = $request->user();
+        $companyId = $user->company_id ?? $user->employee?->company_id;
+
+        if (! $companyId) {
+            return $this->error('El vostre compte no té cap empresa assignada', null, 403);
+        }
+
+        $data               = $request->validated();
+        $data['company_id'] = $companyId;
+
+        return $this->success($this->service->create($data), 'Department created', null, 201);
     }
 
-    public function update(DepartmentUpdateRequest $request, $id)
+    public function update(DepartmentUpdateRequest $request, int $id)
     {
-        $item = $this->service->find((int)$id);
+        $item = $this->service->find($id);
         if (! $item) {
             return $this->error('Department not found', null, 404);
         }
@@ -47,9 +60,9 @@ class DepartmentController extends BaseController
         return $this->success($item, 'Department updated');
     }
 
-    public function destroy($id)
+    public function destroy(int $id)
     {
-        $item = $this->service->find((int)$id);
+        $item = $this->service->find($id);
         if (! $item) {
             return $this->error('Department not found', null, 404);
         }

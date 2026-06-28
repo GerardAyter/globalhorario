@@ -1,0 +1,94 @@
+@import "tailwindcss";
+
+/* Custom global styles */
+html, body, #app {
+  height: 100%;
+}
+
+body {
+  background-color: #ffffff;
+  color: #111827; /* gray-900 */
+}
+
+:root {
+  --color-primary: #185FA5;
+  --bg: #ffffff;
+  --text: #111827;
+  --muted: #6b7280;
+  --card-bg: #ffffff;
+  --border: #e5e7eb;
+  --radius-md: 0.5rem;
+}
+
+/* Brand color utilities (fallback if Tailwind color utils are missing) */
+.bg-primary { background-color: var(--color-primary) !important; }
+.bg-primary-dark { background-color: #134a7f !important; }
+.text-primary-200 { color: rgba(24,95,165,0.2) !important; }
+.text-primary-300 { color: rgba(24,95,165,0.3) !important; }
+.text-primary-400 { color: rgba(24,95,165,0.4) !important; }
+.text-primary { color: var(--color-primary) !important; }
+.text-primary-contrast { color: #ffffff !important; }
+.link-primary { color: var(--color-primary); }
+.btn-primary { background: var(--color-primary); color: #fff; }
+.btn-primary:hover { background: #134a7f; }
+
+/* Centralized UI utility classes */
+.container-center {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+}
+
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+}
+
+.form-label {
+  display: block;
+  font-size: 0.875rem;
+  color: var(--muted);
+  margin-bottom: 0.25rem;
+}
+
+.input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background: #fbfbfd;
+  color: var(--text);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  border: none;
+}
+
+.btn-primary {
+  background: var(--color-primary);
+  color: white;
+  font-weight: 600;
+}
+
+.btn-muted {
+  background: transparent;
+  color: var(--muted);
+}
+
+.error-text {
+  color: #b91c1c;
+  font-size: 0.875rem;
+}
+
+.small-muted { font-size: 0.875rem; color: var(--muted); }
+

@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Traits\HasTenant;
 
-class Break extends Model
+class BreakModel extends Model
 {
     use HasFactory;
     use HasTenant;

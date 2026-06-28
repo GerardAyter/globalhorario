@@ -13,6 +13,12 @@ class Tenant extends Model
 
     protected $fillable = [
         'nom_intern',
+        'nom_legal',
+        'nif',
+        'adreca_facturacio',
+        'telefon',
+        'email_contacte',
+        'persona_contacte',
         'pla',
         'max_empleats',
         'actiu',
@@ -29,5 +35,15 @@ class Tenant extends Model
     public function whitelabel()
     {
         return $this->hasOne(WhitelabelConfig::class);
+    }
+
+    public function companies()
+    {
+        return $this->hasMany(Company::class);
+    }
+
+    public function planFeatureFlags()
+    {
+        return $this->hasMany(PlanFeatureFlag::class);
     }
 }

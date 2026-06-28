@@ -14,10 +14,9 @@ class DepartmentStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'required|string|max:255',
-            'company_id' => 'required|exists:companies,id',
+            'name'       => 'required|string|max:255',
+            'location'   => 'nullable|string|max:255',
             'manager_id' => 'nullable|exists:users,id',
-            'location' => 'nullable|string|max:255',
         ];
     }
 }
