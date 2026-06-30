@@ -3,77 +3,93 @@
 namespace App\Http\Controllers\Api;
 
 use App\Services\AbsenceRequestService;
-use App\Http\Requests\AbsenceRequestStoreRequest;
-use App\Http\Requests\AbsenceRequestUpdateRequest;
 use Illuminate\Http\Request;
 
 class AbsenceRequestController extends BaseController
 {
-    protected AbsenceRequestService $service;
+    public function __construct(private AbsenceRequestService $service) {}
 
-    public function __construct(AbsenceRequestService $service)
+    /** Les meves sol·licituds (usuari autenticat) */
+    public function my(Request $request)
     {
-        $this->service = $service;
+        return $this->success($this->service->myRequests($request->user()));
     }
 
+    /** Totes les sol·licituds de l'empresa (HR+) */
     public function index(Request $request)
     {
-        $data = $this->service->list($request->all());
-        return $this->success($data);
+        $status = $request->query('status');
+        return $this->success($this->service->companyRequests($request->user(), $status));
     }
 
-    public function show($id)
+    /** Crear nova sol·licitud */
+    public function store(Request $request)
     {
-        $item = $this->service->find((int)$id);
-        if (! $item) {
-            return $this->error('Absence request not found', null, 404);
+        $data = $request->validate([
+            'absence_type_id'  => 'required|exists:absence_types,id',
+            'start_date'       => 'required|date',
+            'end_date'         => 'required|date|after_or_equal:start_date',
+            'half_day_start'   => 'boolean',
+            'half_day_end'     => 'boolean',
+            'employee_comment' => 'nullable|string|max:1000',
+        ]);
+
+        try {
+            $item = $this->service->storeForUser($request->user(), $data);
+            return $this->success($item, 'Sol·licitud creada correctament', null, 201);
+        } catch (\Exception $e) {
+            return $this->error($e->getMessage(), null, 422);
         }
+    }
+
+    public function show(Request $request, int $id)
+    {
+        $item = $this->service->myRequests($request->user())->firstWhere('id', $id);
+        if (! $item) return $this->error('Sol·licitud no trobada', null, 404);
         return $this->success($item);
     }
 
-    public function store(AbsenceRequestStoreRequest $request)
+    /** Cancel·lar (propietari) */
+    public function destroy(Request $request, int $id)
     {
-        $item = $this->service->create($request->validated());
-        return $this->success($item, 'Absence request created', null, 201);
+        $item = $this->service->myRequests($request->user())->firstWhere('id', $id);
+        if (! $item) return $this->error('Sol·licitud no trobada', null, 404);
+
+        try {
+            $this->service->cancel($item);
+            return $this->success(null, 'Sol·licitud cancel·lada');
+        } catch (\Exception $e) {
+            return $this->error($e->getMessage(), null, 422);
+        }
     }
 
-    public function update(AbsenceRequestUpdateRequest $request, $id)
+    /** Aprovar (HR+) */
+    public function approve(Request $request, int $id)
     {
-        $item = $this->service->find((int)$id);
-        if (! $item) {
-            return $this->error('Absence request not found', null, 404);
+        $item = \App\Models\AbsenceRequest::find($id);
+        if (! $item) return $this->error('Sol·licitud no trobada', null, 404);
+
+        $comment = $request->input('manager_comment') ?? '';
+        try {
+            $item = $this->service->approve($item, $request->user(), $comment);
+            return $this->success($item, 'Sol·licitud aprovada');
+        } catch (\Exception $e) {
+            return $this->error($e->getMessage(), null, 422);
         }
-        $item = $this->service->update($item, $request->validated());
-        return $this->success($item, 'Absence request updated');
     }
 
-    public function destroy($id)
+    /** Denegar (HR+) */
+    public function deny(Request $request, int $id)
     {
-        $item = $this->service->find((int)$id);
-        if (! $item) {
-            return $this->error('Absence request not found', null, 404);
-        }
-        $this->service->delete($item);
-        return $this->success(null, 'Absence request deleted', null, 204);
-    }
+        $item = \App\Models\AbsenceRequest::find($id);
+        if (! $item) return $this->error('Sol·licitud no trobada', null, 404);
 
-    public function approve($id)
-    {
-        $item = $this->service->find((int)$id);
-        if (! $item) {
-            return $this->error('Absence request not found', null, 404);
+        $comment = $request->input('manager_comment') ?? '';
+        try {
+            $item = $this->service->deny($item, $request->user(), $comment);
+            return $this->success($item, 'Sol·licitud denegada');
+        } catch (\Exception $e) {
+            return $this->error($e->getMessage(), null, 422);
         }
-        $item = $this->service->approve($item);
-        return $this->success($item, 'Absence request approved');
-    }
-
-    public function deny($id)
-    {
-        $item = $this->service->find((int)$id);
-        if (! $item) {
-            return $this->error('Absence request not found', null, 404);
-        }
-        $item = $this->service->deny($item);
-        return $this->success($item, 'Absence request denied');
     }
 }

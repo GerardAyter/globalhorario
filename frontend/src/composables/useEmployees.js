@@ -51,5 +51,14 @@ export function useEmployees() {
     await api.delete(`/v1/employees/${id}`)
   }
 
-  return { employees, loading, saving, error, pagination, load, create, update, remove }
+  async function sendInvitation(id) {
+    try {
+      await api.post(`/v1/employees/${id}/send-invitation`)
+      return { ok: true }
+    } catch (e) {
+      return { ok: false, message: e?.response?.data?.message || 'Error enviant el correu' }
+    }
+  }
+
+  return { employees, loading, saving, error, pagination, load, create, update, remove, sendInvitation }
 }

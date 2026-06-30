@@ -6,26 +6,24 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class ShiftStoreRequest extends FormRequest
 {
-    public function authorize(): bool
-    {
-        return true;
-    }
+    public function authorize(): bool { return true; }
 
     public function rules(): array
     {
         return [
-            'name' => 'required|string|max:255',
-            'company_id' => 'required|exists:companies,id',
-            'color' => 'nullable|string|max:20',
-            'type' => 'nullable|in:fixed,rotating,flexible',
-            'start_time' => 'nullable|date_format:H:i:s',
-            'end_time' => 'nullable|date_format:H:i:s',
-            'crosses_midnight' => 'nullable|boolean',
-            'days_of_week' => 'nullable|array',
-            'total_hours' => 'nullable|numeric',
-            'min_rest_after' => 'nullable|integer',
-            'location_required' => 'nullable|string|max:255',
-            'active' => 'nullable|boolean',
+            'name'           => 'required|string|max:255',
+            'color'          => 'nullable|string|max:20',
+            'days_of_week'   => 'nullable|array',
+            'days_of_week.*' => 'integer|between:1,7',
+            'start_time'     => 'nullable|date_format:H:i',
+            'total_hours'    => 'nullable|numeric|min:0',
+            'active'         => 'nullable|boolean',
+            'flexible_entry' => 'nullable|boolean',
+            'flex_entry_from' => 'nullable|date_format:H:i|required_if:flexible_entry,true',
+            'flex_entry_to'   => 'nullable|date_format:H:i|required_if:flexible_entry,true',
+            'break_duration'  => 'nullable|integer|min:0',
+            'break_from'      => 'nullable|date_format:H:i',
+            'break_to'        => 'nullable|date_format:H:i',
         ];
     }
 }

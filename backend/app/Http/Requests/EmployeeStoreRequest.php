@@ -27,6 +27,7 @@ class EmployeeStoreRequest extends FormRequest
             'telefon'              => 'nullable|string|max:50',
             'politica_absencia_id' => 'nullable|exists:policy_absences,id',
             'politica_horari_id'   => 'nullable|exists:policy_schedules,id',
+            'conveni_id'           => 'nullable|exists:convenis,id',
             'torn_id'              => 'nullable|exists:shifts,id',
             'percentatge_jornada'  => 'nullable|numeric|min:0|max:100',
             'geoloc_requerida'     => 'nullable|boolean',

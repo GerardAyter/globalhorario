@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Api\BaseController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
 use App\Models\User;
 
 class AuthController extends BaseController
@@ -38,6 +39,35 @@ class AuthController extends BaseController
             'tenant.planFeatureFlags' => fn ($q) => $q->where('actiu', true)->select('id', 'tenant_id', 'feature'),
         ]);
         return $this->success($user);
+    }
+
+    public function setPassword(Request $request)
+    {
+        $request->validate([
+            'token'                 => 'required|string',
+            'email'                 => 'required|email',
+            'password'              => 'required|string|min:8|confirmed',
+            'password_confirmation' => 'required|string',
+        ]);
+
+        $status = Password::broker()->reset(
+            $request->only('email', 'password', 'password_confirmation', 'token'),
+            function (User $user, string $password) {
+                $user->forceFill(['password' => Hash::make($password)])->save();
+            }
+        );
+
+        if ($status === Password::PASSWORD_RESET) {
+            return $this->success(null, 'Contrasenya establerta correctament');
+        }
+
+        $message = match ($status) {
+            Password::INVALID_TOKEN => "L'enllaç no és vàlid o ha caducat",
+            Password::INVALID_USER  => "No s'ha trobat cap compte amb aquest correu",
+            default                 => 'Error en establir la contrasenya',
+        };
+
+        return $this->error($message, null, 422);
     }
 
     public function updateProfile(Request $request)

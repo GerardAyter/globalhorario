@@ -2,45 +2,26 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\Traits\HasTenant;
 
 class Notification extends Model
 {
-    use HasFactory;
-    use HasTenant;
+    public $timestamps = false;
 
-    protected $table = 'notifications_custom';
+    protected $table = 'notifications';
 
     protected $fillable = [
-        'tenant_id',
-        'recipient_id',
-        'employee_id',
-        'type',
-        'message',
-        'channel',
-        'read',
-        'entity_reference',
-        'reference_id',
+        'user_id', 'type', 'title', 'body', 'data', 'read_at', 'created_at',
     ];
 
     protected $casts = [
-        'read' => 'boolean',
+        'data'       => 'array',
+        'read_at'    => 'datetime',
+        'created_at' => 'datetime',
     ];
 
-    public function recipient()
+    public function user()
     {
-        return $this->belongsTo(User::class, 'recipient_id');
-    }
-
-    public function employee()
-    {
-        return $this->belongsTo(Employee::class);
-    }
-
-    public function tenant()
-    {
-        return $this->belongsTo(Tenant::class);
+        return $this->belongsTo(User::class);
     }
 }

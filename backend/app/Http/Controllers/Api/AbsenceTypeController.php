@@ -18,8 +18,15 @@ class AbsenceTypeController extends BaseController
 
     public function index(Request $request)
     {
-        $data = $this->service->list($request->all());
-        return $this->success($data);
+        $user      = $request->user();
+        $companyId = $user->company_id ?? $user->employee?->company_id;
+
+        $types = \App\Models\AbsenceType::where('company_id', $companyId)
+            ->where('visible_to_company', true)
+            ->orderBy('name')
+            ->get();
+
+        return $this->success($types);
     }
 
     public function show($id)

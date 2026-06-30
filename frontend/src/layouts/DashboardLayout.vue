@@ -15,13 +15,52 @@
       </div>
 
       <div class="flex items-center gap-3">
+        <!-- Campana de notificacions -->
         <div class="relative">
-          <input placeholder="Cerca..." class="w-48 h-8 pl-8 pr-2 bg-gray-50 border rounded-lg text-sm" />
-          <span class="absolute left-2 top-1.5 text-gray-400">🔍</span>
-        </div>
-        <div class="relative">
-          <button class="text-gray-600">🔔</button>
-          <span class="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] rounded-full px-1">3</span>
+          <button @click="notifOpen = !notifOpen"
+                  class="relative w-8 h-8 flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 transition-colors">
+            <IconBell class="w-5 h-5" />
+            <span v-if="unreadCount > 0"
+                  class="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center leading-none">
+              {{ unreadCount > 9 ? '9+' : unreadCount }}
+            </span>
+          </button>
+
+          <div v-if="notifOpen" class="fixed inset-0 z-20" @click="notifOpen = false" />
+
+          <div v-if="notifOpen"
+               class="absolute right-0 top-full mt-2 w-80 bg-white border border-gray-200 rounded-xl shadow-xl z-30 overflow-hidden">
+            <div class="px-4 py-3 border-b flex items-center justify-between">
+              <h4 class="text-sm font-semibold text-gray-900">Notificacions</h4>
+              <button v-if="unreadCount > 0" @click="markAllRead"
+                      class="text-xs text-blue-600 hover:underline">
+                Marcar totes com a llegides
+              </button>
+            </div>
+
+            <div class="overflow-y-auto max-h-80">
+              <div v-if="notifications.length === 0"
+                   class="py-8 text-center text-sm text-gray-400">
+                Sense notificacions
+              </div>
+              <div v-for="n in notifications" :key="n.id"
+                   @click="handleNotifClick(n)"
+                   class="px-4 py-3 border-b border-gray-50 cursor-pointer transition-colors hover:bg-gray-50"
+                   :class="!n.read_at ? 'bg-blue-50/40' : ''">
+                <div class="flex items-start gap-3">
+                  <span class="text-lg flex-shrink-0 mt-0.5">{{ typeIcon[n.type] || '🔔' }}</span>
+                  <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium text-gray-900 leading-tight" :class="!n.read_at ? 'font-semibold' : ''">
+                      {{ n.title }}
+                    </p>
+                    <p v-if="n.body" class="text-xs text-gray-500 mt-0.5 truncate">{{ n.body }}</p>
+                    <p class="text-[10px] text-gray-400 mt-1">{{ timeAgo(n.created_at) }}</p>
+                  </div>
+                  <span v-if="!n.read_at" class="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0 mt-1.5" />
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- Avatar + menú -->
@@ -79,7 +118,7 @@
       <!-- Sidebar -->
       <aside class="w-48 bg-gray-50 border-r h-[calc(100vh-3rem)] sticky top-12 overflow-y-auto">
         <div class="px-2 pb-4">
-          <template v-if="hasCompany">
+          <template v-if="hasCompany && sidebar.horari.length">
             <div class="text-[10px] text-gray-400 font-medium tracking-wider px-3 mt-4 mb-1">HORARI</div>
             <div v-for="item in sidebar.horari" :key="item.name"
                  @click="go(item)"
@@ -88,9 +127,11 @@
                    : 'flex items-center gap-2 px-3 py-1.5 text-sm cursor-pointer rounded-lg mx-1 text-gray-600 hover:bg-gray-100'">
               <component :is="item.icon" class="w-4 h-4 flex-shrink-0" />
               <span class="flex-1">{{ item.label }}</span>
-              <span v-if="item.badge" class="bg-blue-600 text-white text-[10px] rounded-full px-1.5">{{ item.badge }}</span>
+              <span v-if="item.badge" class="bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">{{ item.badge > 99 ? '99+' : item.badge }}</span>
             </div>
+          </template>
 
+          <template v-if="hasCompany && sidebar.personal.length">
             <div class="text-[10px] text-gray-400 font-medium tracking-wider px-3 mt-4 mb-1">PERSONAL</div>
             <div v-for="item in sidebar.personal" :key="item.name"
                  @click="go(item)"
@@ -99,20 +140,22 @@
                    : 'flex items-center gap-2 px-3 py-1.5 text-sm cursor-pointer rounded-lg mx-1 text-gray-600 hover:bg-gray-100'">
               <component :is="item.icon" class="w-4 h-4 flex-shrink-0" />
               <span class="flex-1">{{ item.label }}</span>
-              <span v-if="item.badge" class="bg-blue-600 text-white text-[10px] rounded-full px-1.5">{{ item.badge }}</span>
+              <span v-if="item.badge" class="bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">{{ item.badge > 99 ? '99+' : item.badge }}</span>
             </div>
           </template>
 
-          <div class="text-[10px] text-gray-400 font-medium tracking-wider px-3 mt-4 mb-1">GESTIÓ</div>
-          <div v-for="item in sidebar.gestio" :key="item.name"
-               @click="go(item)"
-               :class="sidebarActive(item)
-                 ? 'flex items-center gap-2 px-3 py-1.5 text-sm cursor-pointer rounded-lg mx-1 bg-blue-50 text-blue-800 font-medium'
-                 : 'flex items-center gap-2 px-3 py-1.5 text-sm cursor-pointer rounded-lg mx-1 text-gray-600 hover:bg-gray-100'">
-            <component :is="item.icon" class="w-4 h-4 flex-shrink-0" />
-            <span class="flex-1">{{ item.label }}</span>
-            <span v-if="item.badge" class="bg-blue-600 text-white text-[10px] rounded-full px-1.5">{{ item.badge }}</span>
-          </div>
+          <template v-if="sidebar.gestio.length">
+            <div class="text-[10px] text-gray-400 font-medium tracking-wider px-3 mt-4 mb-1">GESTIÓ</div>
+            <div v-for="item in sidebar.gestio" :key="item.name"
+                 @click="go(item)"
+                 :class="sidebarActive(item)
+                   ? 'flex items-center gap-2 px-3 py-1.5 text-sm cursor-pointer rounded-lg mx-1 bg-blue-50 text-blue-800 font-medium'
+                   : 'flex items-center gap-2 px-3 py-1.5 text-sm cursor-pointer rounded-lg mx-1 text-gray-600 hover:bg-gray-100'">
+              <component :is="item.icon" class="w-4 h-4 flex-shrink-0" />
+              <span class="flex-1">{{ item.label }}</span>
+              <span v-if="item.badge" class="bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">{{ item.badge > 99 ? '99+' : item.badge }}</span>
+            </div>
+          </template>
 
           <template v-if="isSuperadmin">
             <div class="text-[10px] text-gray-400 font-medium tracking-wider px-3 mt-4 mb-1">DISTRIBUCIÓ</div>
@@ -123,7 +166,7 @@
                    : 'flex items-center gap-2 px-3 py-1.5 text-sm cursor-pointer rounded-lg mx-1 text-gray-600 hover:bg-gray-100'">
               <component :is="item.icon" class="w-4 h-4 flex-shrink-0" />
               <span class="flex-1">{{ item.label }}</span>
-              <span v-if="item.badge" class="bg-blue-600 text-white text-[10px] rounded-full px-1.5">{{ item.badge }}</span>
+              <span v-if="item.badge" class="bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">{{ item.badge > 99 ? '99+' : item.badge }}</span>
             </div>
           </template>
 
@@ -136,7 +179,7 @@
                    : 'flex items-center gap-2 px-3 py-1.5 text-sm cursor-pointer rounded-lg mx-1 text-gray-600 hover:bg-gray-100'">
               <component :is="item.icon" class="w-4 h-4 flex-shrink-0" />
               <span class="flex-1">{{ item.label }}</span>
-              <span v-if="item.badge" class="bg-blue-600 text-white text-[10px] rounded-full px-1.5">{{ item.badge }}</span>
+              <span v-if="item.badge" class="bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">{{ item.badge > 99 ? '99+' : item.badge }}</span>
             </div>
           </template>
         </div>
@@ -240,14 +283,17 @@
 
 <script setup>
 import { useRouter, useRoute } from 'vue-router'
-import { computed, ref, reactive, onMounted, watch } from 'vue'
+import { computed, ref, reactive, onMounted, onUnmounted, watch } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import {
   IconClock, IconLayoutDashboard, IconArrowsExchange,
   IconUsers, IconCalendarOff, IconReceipt2,
   IconReportAnalytics, IconSettings, IconBuilding, IconBuildingSkyscraper,
-  IconSitemap, IconUserEdit, IconLogout, IconX, IconChevronDown,
+  IconSitemap, IconUserEdit, IconLogout, IconX, IconChevronDown, IconFileDescription,
+  IconCalendar, IconBell, IconClipboardList, IconTable,
 } from '@tabler/icons-vue'
+import { useNotifications } from '../composables/useNotifications'
+import api from '../services/api'
 
 const router = useRouter()
 const route  = useRoute()
@@ -359,41 +405,81 @@ async function submitProfile() {
 }
 
 // ── Navegació ─────────────────────────────────────────────────────────────────
+const ROLE_HIERARCHY = { user: 0, hr: 1, admin: 2, superadmin: 3, founder: 4 }
+
+function canAccess(minRole) {
+  const userLevel = ROLE_HIERARCHY[auth.user?.role] ?? -1
+  const minLevel  = ROLE_HIERARCHY[minRole]         ?? 999
+  return userLevel >= minLevel
+}
+
 const topNavAll = [
   { name: 'dashboard', label: 'Dashboard', path: '/dashboard' },
-  { name: 'employees', label: 'Empleats',  path: '/employees', requiresCompany: true },
-  { name: 'reports',   label: 'Informes',  path: '/reports'   },
+  { name: 'employees', label: 'Empleats',  path: '/employees', minRole: 'hr' },
+  { name: 'documents',   label: 'Documents',  path: '/documents'   },
 ]
-const topNav = computed(() => topNavAll.filter(i => !i.requiresCompany || hasCompany.value))
+const topNav = computed(() => topNavAll.filter(i => !i.minRole || canAccess(i.minRole)))
 
-const sidebar = {
-  horari: [
-    { name: 'control', label: 'Control horari', icon: IconClock,           path: '/time-entries' },
-    { name: 'dash',    label: 'Dashboard',       icon: IconLayoutDashboard, path: '/dashboard', badge: 5 },
-    { name: 'shifts',  label: 'Torns',           icon: IconArrowsExchange,  path: '/shifts' },
-  ],
-  personal: [
-    { name: 'employees', label: 'Empleats',  icon: IconUsers,       path: '/employees' },
-    { name: 'absences',  label: 'Absències', icon: IconCalendarOff, path: '/absences'  },
-    { name: 'payrolls',  label: 'Nòmines',   icon: IconReceipt2,    path: '/payrolls'  },
-  ],
-  gestio: [
-    { name: 'departments', label: 'Departaments', icon: IconSitemap,         path: '/departments' },
-    { name: 'reports',     label: 'Informes',     icon: IconReportAnalytics, path: '/reports'     },
-    { name: 'settings',    label: 'Configuració', icon: IconSettings,        path: '/settings'    },
-  ],
-  distribucio: [
-    { name: 'companies', label: 'Empreses', icon: IconBuildingSkyscraper, path: '/companies' },
-  ],
-  sistema: [
-    { name: 'tenants', label: 'Distribuidors', icon: IconBuilding, path: '/tenants' },
-  ],
+const pendingRequestsCount = ref(0)
+let pendingCountTimer = null
+
+async function fetchPendingCount() {
+  if (!canAccess('hr')) return
+  try {
+    const res = await api.get('/v1/time-entry-edit-requests/count')
+    pendingRequestsCount.value = res.data.data?.count ?? 0
+  } catch {}
 }
+
+const sidebar = computed(() => {
+  const editReqBadge = pendingRequestsCount.value > 0 ? pendingRequestsCount.value : null
+  return {
+    horari: [
+      { name: 'control',  label: 'Control horari', icon: IconClock,           path: '/time-entries' },
+      { name: 'dash',     label: 'Dashboard',       icon: IconLayoutDashboard, path: '/dashboard' },
+      { name: 'shifts',   label: 'Torns',           icon: IconArrowsExchange,  path: '/shifts',                   minRole: 'admin' },
+      { name: 'all-entries', label: 'Fitxatges',       icon: IconTable,          path: '/admin/time-entries',       minRole: 'hr' },
+      { name: 'edit-req',    label: 'Sol·licituds',   icon: IconClipboardList,  path: '/time-entry-edit-requests', minRole: 'hr', badge: editReqBadge },
+    ].filter(i => !i.minRole || canAccess(i.minRole)),
+    personal: [
+      { name: 'employees', label: 'Empleats',  icon: IconUsers,    path: '/employees', minRole: 'hr'    },
+      { name: 'absences',  label: 'Calendari', icon: IconCalendar, path: '/absences'                    },
+      { name: 'payrolls',  label: 'Nòmines',   icon: IconReceipt2, path: '/payrolls',  minRole: 'admin' },
+    ].filter(i => !i.minRole || canAccess(i.minRole)),
+    gestio: [
+      { name: 'departments', label: 'Departaments', icon: IconSitemap,         path: '/departments', minRole: 'admin' },
+      { name: 'convenis',    label: 'Convenis',      icon: IconFileDescription, path: '/convenis',    minRole: 'admin' },
+      { name: 'documents',   label: 'Documents',     icon: IconReportAnalytics, path: '/documents'                    },
+      { name: 'settings',    label: 'Configuració',  icon: IconSettings,        path: '/settings',    minRole: 'admin' },
+    ].filter(i => !i.minRole || canAccess(i.minRole)),
+    distribucio: [{ name: 'companies', label: 'Empreses',      icon: IconBuildingSkyscraper, path: '/companies' }],
+    sistema:     [{ name: 'tenants',   label: 'Distribuidors', icon: IconBuilding,           path: '/tenants'   }],
+  }
+})
 
 function go(item)            { router.push(item.path) }
 function sidebarActive(item) { return route.path === item.path }
 function topActive(item)     { return route.path === item.path }
 
+// ── Notificacions ─────────────────────────────────────────────────────────────
+const { notifications, unreadCount, markRead, markAllRead, startPolling, stopPolling, timeAgo, typeIcon } = useNotifications()
+const notifOpen = ref(false)
+
+async function handleNotifClick(n) {
+  const url = await markRead(n.id, n.data?.url)
+  notifOpen.value = false
+  if (url) router.push(url)
+}
+
 // ── Init: carrega dades completes de l'usuari (empresa, etc.) ─────────────────
-onMounted(() => { auth.fetchMe().catch(() => {}) })
+onMounted(() => {
+  auth.fetchMe().catch(() => {})
+  startPolling()
+  fetchPendingCount()
+  pendingCountTimer = setInterval(fetchPendingCount, 60_000)
+})
+onUnmounted(() => {
+  stopPolling()
+  clearInterval(pendingCountTimer)
+})
 </script>

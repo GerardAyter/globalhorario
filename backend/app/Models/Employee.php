@@ -27,6 +27,7 @@ class Employee extends Model
         'telefon',
         'politica_absencia_id',
         'politica_horari_id',
+        'conveni_id',
         'torn_id',
         'percentatge_jornada',
         'geoloc_requerida',
@@ -70,6 +71,16 @@ class Employee extends Model
     public function tenant()
     {
         return $this->belongsTo(Tenant::class);
+    }
+
+    public function conveni()
+    {
+        return $this->belongsTo(Conveni::class);
+    }
+
+    public function shift()
+    {
+        return $this->belongsTo(Shift::class, 'torn_id');
     }
 
     public function timeEntries()

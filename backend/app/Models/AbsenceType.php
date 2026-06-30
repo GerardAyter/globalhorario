@@ -19,6 +19,7 @@ class AbsenceType extends Model
         'company_id',
         'category',
         'requires_document',
+        'requires_comment',
         'paid',
         'max_days_per_year',
         'counts_for_seniority',
@@ -29,6 +30,7 @@ class AbsenceType extends Model
 
     protected $casts = [
         'requires_document' => 'boolean',
+        'requires_comment'  => 'boolean',
         'paid' => 'boolean',
         'counts_for_seniority' => 'boolean',
         'visible_to_company' => 'boolean',

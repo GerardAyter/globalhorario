@@ -27,11 +27,18 @@ class Shift extends Model
         'min_rest_after',
         'location_required',
         'active',
+        'flexible_entry',
+        'flex_entry_from',
+        'flex_entry_to',
+        'break_duration',
+        'break_from',
+        'break_to',
     ];
 
     protected $casts = [
-        'days_of_week' => 'array',
+        'days_of_week'    => 'array',
         'crosses_midnight' => 'boolean',
-        'active' => 'boolean',
+        'active'          => 'boolean',
+        'flexible_entry'  => 'boolean',
     ];
 }

@@ -11,10 +11,10 @@ class TimeEntry extends Model
     use HasFactory;
     use HasTenant;
 
-    const ORIGIN_MANUAL = 'manual';
-    const ORIGIN_MOBILE = 'mobile';
-    const ORIGIN_WEB = 'web';
-    const ORIGIN_WHATSAPP = 'whatsapp';
+    const ORIGIN_MANUAL    = 'manual';
+    const ORIGIN_MOBILE    = 'mobile';
+    const ORIGIN_WEB       = 'web';
+    const ORIGIN_WHATSAPP  = 'whatsapp';
 
     protected $table = 'time_entries';
 
@@ -22,6 +22,10 @@ class TimeEntry extends Model
         'tenant_id',
         'user_id',
         'employee_id',
+        'company_id',
+        'shift_id',
+        'date',
+        'work_status',
         'origin',
         'clock_in_at',
         'clock_out_at',
@@ -38,7 +42,8 @@ class TimeEntry extends Model
     ];
 
     protected $casts = [
-        'clock_in_at' => 'datetime',
+        'date'         => 'date',
+        'clock_in_at'  => 'datetime',
         'clock_out_at' => 'datetime',
         'clock_in_geo' => 'array',
         'clock_out_geo' => 'array',
@@ -53,6 +58,21 @@ class TimeEntry extends Model
     public function employee()
     {
         return $this->belongsTo(Employee::class);
+    }
+
+    public function shift()
+    {
+        return $this->belongsTo(Shift::class);
+    }
+
+    public function breaks()
+    {
+        return $this->hasMany(TimeEntryBreak::class)->orderBy('break_start_at');
+    }
+
+    public function logs()
+    {
+        return $this->hasMany(TimeEntryLog::class)->orderBy('happened_at');
     }
 
     public function tenant()

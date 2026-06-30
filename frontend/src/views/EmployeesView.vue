@@ -10,6 +10,11 @@
       </button>
     </div>
 
+    <div v-if="invitationError" class="mb-4 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3 flex items-center gap-2">
+      <IconAlertTriangle class="w-4 h-4 flex-shrink-0" />
+      <span>{{ invitationError }}</span>
+    </div>
+
     <div class="bg-white border border-gray-200 rounded-xl overflow-hidden">
       <!-- Skeleton -->
       <div v-if="loading" class="divide-y divide-gray-100">
@@ -52,10 +57,16 @@
             {{ (e.nom[0] || '').toUpperCase() }}{{ (e.cognoms[0] || '').toUpperCase() }}
           </div>
 
-          <!-- Nom + email -->
+          <!-- Nom + email + torn -->
           <div class="flex-1 min-w-0">
             <div class="font-medium text-gray-900 text-sm truncate">{{ e.nom }} {{ e.cognoms }}</div>
-            <div v-if="e.email" class="text-xs text-gray-400 truncate">{{ e.email }}</div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <span v-if="e.email" class="text-xs text-gray-400 truncate">{{ e.email }}</span>
+              <span v-if="e.shift" class="flex items-center gap-1 text-xs text-gray-400">
+                <span class="w-2 h-2 rounded-full flex-shrink-0" :style="{ backgroundColor: e.shift.color || '#94a3b8' }" />
+                {{ e.shift.name }}
+              </span>
+            </div>
           </div>
 
           <!-- Empresa (superadmin) -->
@@ -82,6 +93,21 @@
             </button>
             <button @click="openEdit(e)" class="w-7 h-7 flex items-center justify-center rounded text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors" title="Editar">
               <IconEdit class="w-4 h-4" />
+            </button>
+            <button v-if="e.user"
+                    @click="doSendInvitation(e)"
+                    :disabled="sendingInvitationId === e.id"
+                    :title="sentInvitations[e.id] ? 'Correu enviat!' : 'Enviar correu de recuperació de contrasenya'"
+                    class="w-7 h-7 flex items-center justify-center rounded transition-colors"
+                    :class="sentInvitations[e.id]
+                      ? 'text-green-600 bg-green-50'
+                      : 'text-gray-400 hover:text-blue-600 hover:bg-blue-50'">
+              <IconCheck v-if="sentInvitations[e.id]" class="w-4 h-4" />
+              <svg v-else-if="sendingInvitationId === e.id" class="animate-spin w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+              </svg>
+              <IconMail v-else class="w-4 h-4" />
             </button>
             <button @click="askDelete(e)"
                     :disabled="e.user?.role === 'admin'"
@@ -180,13 +206,36 @@
             <div>
               <p class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3">Laboral</p>
               <div class="space-y-3">
+                <div class="grid grid-cols-2 gap-3">
+                  <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Departament</label>
+                    <select v-model.number="form.department_id"
+                            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                      <option :value="null">Sense departament</option>
+                      <option v-for="dep in allDepartments" :key="dep.id" :value="dep.id">{{ dep.name }}</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Torn assignat</label>
+                    <select v-model.number="form.torn_id"
+                            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                      <option :value="null">Sense torn</option>
+                      <option v-for="s in allShifts" :key="s.id" :value="s.id">{{ s.name }}</option>
+                    </select>
+                  </div>
+                </div>
                 <div>
-                  <label class="block text-xs font-medium text-gray-600 mb-1">Departament</label>
-                  <select v-model.number="form.department_id"
+                  <label class="block text-xs font-medium text-gray-600 mb-1">Conveni laboral</label>
+                  <select v-model.number="form.conveni_id"
                           class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <option :value="null">Sense departament</option>
-                    <option v-for="dep in allDepartments" :key="dep.id" :value="dep.id">{{ dep.name }}</option>
+                    <option :value="null">Sense conveni assignat</option>
+                    <option v-for="c in allConvenis" :key="c.id" :value="c.id">{{ c.name }}</option>
                   </select>
+                  <p v-if="form.conveni_id" class="text-[11px] text-gray-400 mt-1">
+                    {{ allConvenis.find(c => c.id === form.conveni_id)?.weekly_hours }}h/set. ·
+                    {{ allConvenis.find(c => c.id === form.conveni_id)?.vacation_days }} dies vacances ·
+                    {{ allConvenis.find(c => c.id === form.conveni_id)?.personal_days }} dies personals
+                  </p>
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                   <div>
@@ -339,6 +388,22 @@
                 <span class="w-40 text-gray-400 flex-shrink-0">Departament</span>
                 <span class="text-gray-800">{{ viewTarget.department.name }}</span>
               </div>
+              <div v-if="viewTarget.shift" class="flex gap-3 text-sm">
+                <span class="w-40 text-gray-400 flex-shrink-0">Torn</span>
+                <span class="flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full inline-block" :style="{ backgroundColor: viewTarget.shift.color || '#94a3b8' }" />
+                  <span class="text-gray-800">{{ viewTarget.shift.name }}</span>
+                </span>
+              </div>
+              <div v-if="viewTarget.conveni" class="flex gap-3 text-sm">
+                <span class="w-40 text-gray-400 flex-shrink-0">Conveni</span>
+                <span class="text-gray-800">
+                  {{ viewTarget.conveni.name }}
+                  <span class="text-gray-400 text-xs ml-1">
+                    ({{ viewTarget.conveni.weekly_hours }}h/set. · {{ viewTarget.conveni.vacation_days }}d vac. · {{ viewTarget.conveni.personal_days }}d pers.)
+                  </span>
+                </span>
+              </div>
               <div v-if="viewTarget.data_alta" class="flex gap-3 text-sm">
                 <span class="w-40 text-gray-400 flex-shrink-0">Data alta</span>
                 <span class="text-gray-800">{{ formatDate(viewTarget.data_alta) }}</span>
@@ -400,14 +465,19 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import { IconPlus, IconEdit, IconTrash, IconX, IconEye, IconUsers, IconAlertTriangle } from '@tabler/icons-vue'
+import { IconPlus, IconEdit, IconTrash, IconX, IconEye, IconUsers, IconAlertTriangle, IconMail, IconCheck } from '@tabler/icons-vue'
 import { useEmployees } from '../composables/useEmployees'
 import { useDepartments } from '../composables/useDepartments'
+import { useShifts } from '../composables/useShifts'
+import api from '../services/api'
 
-const { employees, loading, saving, error, pagination, load, create, update, remove } = useEmployees()
+const { employees, loading, saving, error, pagination, load, create, update, remove, sendInvitation } = useEmployees()
 const { loadAll: loadAllDepartments } = useDepartments()
+const { loadAll: loadAllShifts }      = useShifts()
 
 const allDepartments = ref([])
+const allShifts      = ref([])
+const allConvenis    = ref([])
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 const AVATAR_COLORS = ['#3B82F6','#10B981','#F59E0B','#EF4444','#8B5CF6','#EC4899','#14B8A6','#F97316']
@@ -444,6 +514,8 @@ const formErrors = ref({})
 const formError  = ref('')
 const form = reactive({
   department_id: null,
+  conveni_id: null,
+  torn_id: null,
   nom: '', cognoms: '', dni_nie: '', nss: '', data_naixement: '',
   email: '', telefon: '',
   data_alta: '', data_baixa: '', percentatge_jornada: null,
@@ -454,6 +526,8 @@ const form = reactive({
 function resetForm() {
   Object.assign(form, {
     department_id: null,
+    conveni_id: null,
+    torn_id: null,
     nom: '', cognoms: '', dni_nie: '', nss: '', data_naixement: '',
     email: '', telefon: '',
     data_alta: '', data_baixa: '', percentatge_jornada: null,
@@ -473,6 +547,8 @@ function openEdit(e) {
   resetForm()
   Object.assign(form, {
     department_id:       e.department_id       || null,
+    conveni_id:          e.conveni_id          || null,
+    torn_id:             e.torn_id             || null,
     nom:                 e.nom                 || '',
     cognoms:             e.cognoms             || '',
     dni_nie:             e.dni_nie             || '',
@@ -498,6 +574,8 @@ async function submitModal() {
   formError.value  = ''
   const payload = {
     department_id:       form.department_id || null,
+    conveni_id:          form.conveni_id    || null,
+    torn_id:             form.torn_id       || null,
     nom:                 form.nom.trim(),
     cognoms:             form.cognoms.trim(),
     dni_nie:             form.dni_nie            || null,
@@ -518,6 +596,30 @@ async function submitModal() {
     : await create(payload)
   if (result.ok) { closeModal(); load(pagination.value.current_page) }
   else { formErrors.value = result.errors || {}; formError.value = result.message || 'Error en desar.' }
+}
+
+// ── Enviar invitació ──────────────────────────────────────────────────────────
+const sendingInvitationId = ref(null)
+const sentInvitations     = ref({})
+const invitationError     = ref('')
+
+async function doSendInvitation(e) {
+  if (sendingInvitationId.value) return
+  invitationError.value    = ''
+  sendingInvitationId.value = e.id
+  const result = await sendInvitation(e.id)
+  sendingInvitationId.value = null
+  if (result.ok) {
+    sentInvitations.value = { ...sentInvitations.value, [e.id]: true }
+    setTimeout(() => {
+      const copy = { ...sentInvitations.value }
+      delete copy[e.id]
+      sentInvitations.value = copy
+    }, 3000)
+  } else {
+    invitationError.value = result.message || "No s'ha pogut enviar el correu"
+    setTimeout(() => { invitationError.value = '' }, 5000)
+  }
 }
 
 // ── Veure / Eliminar ──────────────────────────────────────────────────────────
@@ -541,8 +643,19 @@ async function confirmDelete() {
   }
 }
 
+async function loadAllConvenis() {
+  try {
+    const res = await api.get('/v1/convenis')
+    return res.data.data || []
+  } catch { return [] }
+}
+
 onMounted(async () => {
   load()
-  allDepartments.value = await loadAllDepartments()
+  ;[allDepartments.value, allShifts.value, allConvenis.value] = await Promise.all([
+    loadAllDepartments(),
+    loadAllShifts(),
+    loadAllConvenis(),
+  ])
 })
 </script>

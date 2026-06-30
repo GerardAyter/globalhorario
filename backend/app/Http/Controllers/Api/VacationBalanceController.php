@@ -3,57 +3,73 @@
 namespace App\Http\Controllers\Api;
 
 use App\Services\VacationBalanceService;
-use App\Http\Requests\VacationBalanceStoreRequest;
-use App\Http\Requests\VacationBalanceUpdateRequest;
 use Illuminate\Http\Request;
 
 class VacationBalanceController extends BaseController
 {
-    protected VacationBalanceService $service;
+    public function __construct(private VacationBalanceService $service) {}
 
-    public function __construct(VacationBalanceService $service)
+    /** Balanç propi de l'usuari autenticat */
+    public function my(Request $request)
     {
-        $this->service = $service;
+        return $this->success($this->service->myBalance($request->user()));
     }
 
+    /** Balanços de tots els empleats de l'empresa (HR+) */
     public function index(Request $request)
     {
-        $data = $this->service->list($request->all());
-        return $this->success($data);
+        return $this->success($this->service->companyBalances($request->user()));
     }
 
-    public function show($id)
+    public function show(Request $request, int $id)
     {
-        $item = $this->service->find((int)$id);
-        if (! $item) {
-            return $this->error('Vacation balance not found', null, 404);
-        }
+        $item = \App\Models\VacationBalance::find($id);
+        if (! $item) return $this->error('Balanç no trobat', null, 404);
         return $this->success($item);
     }
 
-    public function store(VacationBalanceStoreRequest $request)
+    public function store(Request $request)
     {
-        $item = $this->service->create($request->validated());
-        return $this->success($item, 'Vacation balance created', null, 201);
+        $data = $request->validate([
+            'employee_id'       => 'required|exists:employees,id',
+            'year'              => 'required|integer|min:2000|max:2099',
+            'generated_days'    => 'required|numeric|min:0',
+            'carried_from_previous' => 'nullable|numeric|min:0',
+            'manual_adjustment' => 'nullable|numeric',
+            'adjustment_reason' => 'nullable|string|max:500',
+            'personal_days_total' => 'nullable|integer|min:0',
+        ]);
+
+        $employee = \App\Models\Employee::find($data['employee_id']);
+        $data['user_id']    = $employee->user_id;
+        $data['company_id'] = $employee->company_id;
+
+        $item = \App\Models\VacationBalance::create($data);
+        return $this->success($item, 'Balanç creat', null, 201);
     }
 
-    public function update(VacationBalanceUpdateRequest $request, $id)
+    public function update(Request $request, int $id)
     {
-        $item = $this->service->find((int)$id);
-        if (! $item) {
-            return $this->error('Vacation balance not found', null, 404);
-        }
-        $item = $this->service->update($item, $request->validated());
-        return $this->success($item, 'Vacation balance updated');
+        $item = \App\Models\VacationBalance::find($id);
+        if (! $item) return $this->error('Balanç no trobat', null, 404);
+
+        $data = $request->validate([
+            'generated_days'      => 'sometimes|numeric|min:0',
+            'carried_from_previous' => 'sometimes|numeric|min:0',
+            'manual_adjustment'   => 'sometimes|numeric',
+            'adjustment_reason'   => 'nullable|string|max:500',
+            'personal_days_total' => 'sometimes|integer|min:0',
+        ]);
+
+        $item->update($data);
+        return $this->success($item, 'Balanç actualitzat');
     }
 
-    public function destroy($id)
+    public function destroy(int $id)
     {
-        $item = $this->service->find((int)$id);
-        if (! $item) {
-            return $this->error('Vacation balance not found', null, 404);
-        }
-        $this->service->delete($item);
-        return $this->success(null, 'Vacation balance deleted', null, 204);
+        $item = \App\Models\VacationBalance::find($id);
+        if (! $item) return $this->error('Balanç no trobat', null, 404);
+        $item->delete();
+        return $this->success(null, 'Balanç eliminat');
     }
 }

@@ -6,9 +6,11 @@ use App\Models\Employee;
 
 class EmployeeService extends BaseService
 {
+    private const WITH = ['user', 'company', 'department', 'shift', 'conveni'];
+
     public function list(array $filters = [])
     {
-        $q = Employee::with(['user', 'company', 'department']);
+        $q = Employee::with(self::WITH);
         if (!empty($filters['company_id'])) {
             $q->where('company_id', $filters['company_id']);
         }
@@ -17,7 +19,7 @@ class EmployeeService extends BaseService
 
     public function find(int $id): ?Employee
     {
-        return Employee::with(['user', 'company', 'department'])->find($id);
+        return Employee::with(self::WITH)->find($id);
     }
 
     public function create(array $data): Employee
@@ -28,7 +30,7 @@ class EmployeeService extends BaseService
     public function update(Employee $item, array $data): Employee
     {
         $item->update($data);
-        return $item->load(['user', 'company']);
+        return $item->load(self::WITH);
     }
 
     public function delete(Employee $item): bool

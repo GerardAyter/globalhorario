@@ -12,7 +12,7 @@
         </div>
         <div class="flex items-start gap-3">
           <IconCalendarOff class="text-primary-300" width="18" height="18" />
-          <div>Gestió d'absències i vacances</div>
+          <div>Calendari laboral i vacances</div>
         </div>
         <div class="flex items-start gap-3">
           <IconUsers class="text-primary-300" width="18" height="18" />
