@@ -180,12 +180,12 @@
           <div v-else>
             <div v-for="a in latestAbsences" :key="a.id" class="flex items-center justify-between py-2">
               <div>
-                <div class="text-sm text-gray-900">{{ a.employee_name || a.employee?.name || '—' }}</div>
-                <div class="text-xs text-gray-400">{{ a.department_name || a.employee?.department || '' }}</div>
+                <div class="text-sm text-gray-900">{{ a.employee?.nom ? `${a.employee.nom} ${a.employee.cognoms || ''}`.trim() : (a.employee_name || '—') }}</div>
+                <div class="text-xs text-gray-400">{{ a.employee?.department?.name || a.department_name || '' }}</div>
               </div>
               <div class="flex items-center gap-2">
-                <Badge :variant="(a.type && a.type.toLowerCase().includes('vac')) ? 'blue' : 'amber'">{{ a.type || 'vacances' }}</Badge>
-                <Badge :variant="(a.status && a.status.toLowerCase().includes('aprov')) ? 'green' : 'amber'">{{ a.status || 'Pendent' }}</Badge>
+                <Badge :variant="String(a.type?.name || a.type || '').toLowerCase().includes('vac') ? 'blue' : 'amber'">{{ a.type?.name || a.type || 'Absència' }}</Badge>
+                <Badge :variant="String(a.status || '').toLowerCase().includes('aprov') ? 'green' : 'amber'">{{ a.status || 'Pendent' }}</Badge>
               </div>
             </div>
             <p v-if="!latestAbsences?.length" class="text-sm text-gray-400">Sense absències recents</p>

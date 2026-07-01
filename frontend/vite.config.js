@@ -6,17 +6,16 @@ import vueDevTools from 'vite-plugin-vue-devtools'
 import tailwindcss from '@tailwindcss/vite'
 
 // https://vite.dev/config/
-export default defineConfig({
-  base: '/',
+export default defineConfig(({ mode }) => ({
+  base: '/aplicacio/',
   plugins: [
     vue(),
     tailwindcss(),
-
-    vueDevTools(),
-  ],
+    mode === 'development' ? vueDevTools() : null,
+  ].filter(Boolean),
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
     },
   },
-})
+}))
