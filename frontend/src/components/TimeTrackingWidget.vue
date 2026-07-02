@@ -47,7 +47,7 @@
           </div>
           <div>
             <p class="font-medium text-gray-900">Treballant</p>
-            <p class="text-sm text-gray-400">Entrada: {{ formatTime(entry.clock_in_at) }}</p>
+            <p class="text-sm text-gray-400">Entrada: {{ formatTimeWithDay(entry.clock_in_at) }}</p>
           </div>
         </div>
         <div class="text-right">
@@ -110,7 +110,7 @@
       <div class="mb-3 bg-gray-50 rounded-xl px-4 py-3 flex items-center justify-between">
         <div class="flex items-center gap-2 text-sm text-gray-500">
           <IconClock class="w-4 h-4" />
-          <span>Treballant des de {{ formatTime(entry.clock_in_at) }}</span>
+          <span>Treballant des de {{ formatTimeWithDay(entry.clock_in_at) }}</span>
         </div>
         <span class="font-mono font-semibold text-gray-800 text-sm">{{ elapsed }}</span>
       </div>
@@ -154,7 +154,7 @@
       <div class="grid grid-cols-3 gap-3 mb-3">
         <div class="bg-gray-50 rounded-xl p-3 text-center">
           <p class="text-[10px] text-gray-400 uppercase tracking-wider mb-1">Entrada</p>
-          <p class="font-mono font-semibold text-gray-900">{{ formatTime(entry.clock_in_at) }}</p>
+          <p class="font-mono font-semibold text-gray-900">{{ formatTimeWithDay(entry.clock_in_at) }}</p>
         </div>
         <div class="bg-gray-50 rounded-xl p-3 text-center">
           <p class="text-[10px] text-gray-400 uppercase tracking-wider mb-1">Sortida</p>
@@ -215,6 +215,18 @@ function formatTime(iso) {
   return new Date(iso).toLocaleTimeString('ca-ES', { hour: '2-digit', minute: '2-digit' })
 }
 
+function formatTimeWithDay(iso) {
+  if (!iso) return '—'
+  const d = new Date(iso)
+  const now = new Date()
+  const isToday = d.getFullYear() === now.getFullYear() &&
+                  d.getMonth()    === now.getMonth()    &&
+                  d.getDate()     === now.getDate()
+  const time = d.toLocaleTimeString('ca-ES', { hour: '2-digit', minute: '2-digit' })
+  if (isToday) return time
+  return d.toLocaleDateString('ca-ES', { weekday: 'short', day: 'numeric', month: 'short' }) + ' ' + time
+}
+
 function formatDuration(minutes) {
   if (!minutes) return '0 min'
   const h = Math.floor(minutes / 60)
@@ -257,7 +269,8 @@ const effectiveTime = computed(() => {
   const e = entry.value
   if (!e?.clock_in_at || !e?.clock_out_at) return '—'
   const totalMin = Math.round((new Date(e.clock_out_at) - new Date(e.clock_in_at)) / 60000)
-  const effectiveMin = totalMin - (e.total_break_minutes || 0)
+  const shiftBreak = shift.value?.break_duration || 0
+  const effectiveMin = totalMin - (e.total_break_minutes || 0) + shiftBreak
   return formatDuration(Math.max(0, effectiveMin))
 })
 

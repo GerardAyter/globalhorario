@@ -154,7 +154,15 @@
 
           <!-- Accions -->
           <div class="w-24 flex items-center justify-end gap-1 pt-0.5">
-            <button @click="openEdit(e)" title="Sol·licitar edició"
+            <button v-if="!e.clock_out_at"
+                    @click="doAdminClockOut(e)"
+                    :disabled="clockingOutId === e.id"
+                    title="Finalitzar torn"
+                    class="w-7 h-7 flex items-center justify-center rounded-lg transition-colors"
+                    :class="clockingOutId === e.id ? 'text-gray-200 cursor-not-allowed' : 'text-gray-400 hover:bg-green-50 hover:text-green-600'">
+              <IconLogout class="w-3.5 h-3.5" />
+            </button>
+            <button @click="openEdit(e)" title="Sol·licitar modificació"
                     :disabled="!!(e.pending_request_type || e.pending_admin_request)"
                     class="w-7 h-7 flex items-center justify-center rounded-lg transition-colors"
                     :class="(e.pending_request_type || e.pending_admin_request) ? 'text-gray-200 cursor-not-allowed' : 'text-gray-400 hover:bg-amber-50 hover:text-amber-600'">
@@ -201,7 +209,7 @@
               <input v-model="editForm.clock_in_at" type="datetime-local"
                      class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
             </div>
-            <div>
+            <div v-if="selected.clock_out_at">
               <label class="block text-xs font-medium text-gray-600 mb-1">Nova hora de sortida</label>
               <input v-model="editForm.clock_out_at" type="datetime-local"
                      class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
@@ -546,6 +554,20 @@ function openBreakDelete(entry, brk) {
   breakDeleteSuccess.value = false; breakDeleteError.value = ''; breakDeleteReason.value = ''
   breakDeleteModal.value = true
 }
+const clockingOutId = ref(null)
+
+async function doAdminClockOut(entry) {
+  clockingOutId.value = entry.id
+  try {
+    await api.post(`/v1/time-tracking/admin/entries/${entry.id}/clock-out`)
+    await fetchEntries()
+  } catch (err) {
+    console.error(err?.response?.data?.message || err)
+  } finally {
+    clockingOutId.value = null
+  }
+}
+
 async function submitBreakDelete() {
   breakDeleteError.value = ''; breakDeleteSaving.value = true
   try {

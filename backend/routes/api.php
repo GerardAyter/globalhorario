@@ -75,6 +75,7 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::post('time-entry-edit-requests/{id}/approve', [TimeEntryEditRequestController::class, 'approve']);
             Route::post('time-entry-edit-requests/{id}/deny', [TimeEntryEditRequestController::class, 'deny']);
             Route::get('time-tracking/admin/entries-month', [TimeTrackingController::class, 'adminEntriesMonth']);
+            Route::post('time-tracking/admin/entries/{id}/clock-out',      [TimeTrackingController::class, 'adminClockOut']);
             Route::post('time-tracking/admin/entries/{id}/edit-request',   [TimeEntryEditRequestController::class, 'storeAdminEntryEdit']);
             Route::post('time-tracking/admin/entries/{id}/delete-request', [TimeEntryEditRequestController::class, 'storeAdminEntryDelete']);
             Route::post('time-tracking/admin/breaks/{id}/edit-request',    [TimeEntryEditRequestController::class, 'storeAdminBreakEdit']);

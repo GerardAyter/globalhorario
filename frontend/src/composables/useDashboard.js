@@ -26,7 +26,14 @@ export function useDashboard() {
       // Time entries - fetch a reasonable page and compute today's clockings client-side
       const teRes = await api.get('/v1/time-entries?per_page=100').catch(() => ({ data: { data: [] } }))
       const teData = teRes?.data?.data?.data ?? teRes?.data?.data ?? []
-      const clockingToday = teData.filter(t => isToday(t.clock_in_at)).length
+      // Compta empleats únics que fitxen avui O que tenen un torn obert (de dies anteriors)
+      const clockingSet = new Set()
+      teData.forEach(t => {
+        if (isToday(t.clock_in_at) || ['clocked_in', 'on_break'].includes(t.work_status)) {
+          clockingSet.add(t.employee_id)
+        }
+      })
+      const clockingToday = clockingSet.size
 
       // Absence requests - latest
       const absRes = await api.get('/v1/absence-requests?per_page=5').catch(() => ({ data: { data: [] } }))

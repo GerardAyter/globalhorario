@@ -23,14 +23,14 @@ class TimeTrackingService
         $today = Carbon::today();
         $shift = $employee->shift;
 
-        // Prioritza l'entrada activa (clocked_in o on_break)
+        // Prioritza qualsevol entrada activa (pot ser de dies anteriors si no es va tancar)
         $entry = TimeEntry::with(['breaks', 'shift'])
             ->where('employee_id', $employee->id)
-            ->whereDate('date', $today)
             ->whereIn('work_status', ['clocked_in', 'on_break'])
+            ->latest('clock_in_at')
             ->first();
 
-        // Si no n'hi ha d'activa, agafa la més recent del dia (ja tancada)
+        // Si no n'hi ha d'activa, agafa la més recent d'avui (ja tancada)
         if (! $entry) {
             $entry = TimeEntry::with(['breaks', 'shift'])
                 ->where('employee_id', $employee->id)
@@ -82,9 +82,8 @@ class TimeTrackingService
             throw new \Exception("No tens cap registre d'empleat associat.");
         }
 
-        // Bloqueja només si hi ha una entrada ACTIVA (no tancada)
+        // Bloqueja si hi ha qualsevol entrada ACTIVA (pot ser de dies anteriors)
         $active = TimeEntry::where('employee_id', $employee->id)
-            ->whereDate('date', Carbon::today())
             ->whereIn('work_status', ['clocked_in', 'on_break'])
             ->exists();
 
@@ -184,20 +183,38 @@ class TimeTrackingService
         $companyId = $user->company_id ?? $user->employee?->company_id;
         if (! $companyId) return ['entries' => [], 'not_clocked' => []];
 
-        $entries = TimeEntry::with(['employee.department', 'breaks'])
+        $rawEntries = TimeEntry::with(['employee.department', 'breaks', 'shift'])
             ->where('company_id', $companyId)
             ->whereDate('date', $date)
             ->orderByDesc('clock_in_at')
-            ->get()
-            ->map(function (TimeEntry $e) {
+            ->get();
+
+        $entryIds = $rawEntries->pluck('id');
+        try {
+            $pendingReqs = TimeEntryEditRequest::where('status', 'pending')
+                ->whereNull('break_id')
+                ->whereIn('time_entry_id', $entryIds)
+                ->get(['time_entry_id', 'type', 'initiated_by'])
+                ->groupBy('time_entry_id');
+        } catch (\Exception) {
+            $pendingReqs = collect();
+        }
+
+        $entries = $rawEntries->map(function (TimeEntry $e) use ($pendingReqs) {
                 $totalBreak = $e->breaks->whereNotNull('break_end_at')->sum('duration_minutes');
+                $shiftBreak = (int) ($e->shift?->break_duration ?? 0);
                 $effectiveMinutes = null;
                 if ($e->clock_in_at && $e->clock_out_at) {
-                    $effectiveMinutes = (int) $e->clock_in_at->diffInMinutes($e->clock_out_at) - $totalBreak;
+                    $effectiveMinutes = (int) $e->clock_in_at->diffInMinutes($e->clock_out_at) - $totalBreak + $shiftBreak;
                 }
+                $reqs   = $pendingReqs->get($e->id, collect());
+                $empReq = $reqs->firstWhere('initiated_by', 'employee');
+                $admReq = $reqs->firstWhere('initiated_by', 'admin');
                 return array_merge($e->toArray(), [
-                    'total_break_minutes' => (int) $totalBreak,
-                    'effective_minutes'   => $effectiveMinutes,
+                    'total_break_minutes'   => (int) $totalBreak,
+                    'effective_minutes'     => $effectiveMinutes,
+                    'pending_request_type'  => $empReq?->type,
+                    'pending_admin_request' => $admReq ? ['type' => $admReq->type] : null,
                 ]);
             })
             ->values()
@@ -227,7 +244,7 @@ class TimeTrackingService
         $start = Carbon::createFromDate($year, $month, 1)->startOfMonth();
         $end   = $start->copy()->endOfMonth();
 
-        $entries = TimeEntry::with('breaks')
+        $entries = TimeEntry::with(['breaks', 'shift'])
             ->where('employee_id', $employee->id)
             ->whereBetween('date', [$start->toDateString(), $end->toDateString()])
             ->orderByDesc('date')
@@ -258,9 +275,10 @@ class TimeTrackingService
 
         return $entries->map(function (TimeEntry $e) use ($allEntryPending, $allBreakPending) {
                 $totalBreak = $e->breaks->whereNotNull('break_end_at')->sum('duration_minutes');
+                $shiftBreak = (int) ($e->shift?->break_duration ?? 0);
                 $effectiveMinutes = null;
                 if ($e->clock_in_at && $e->clock_out_at) {
-                    $effectiveMinutes = (int) $e->clock_in_at->diffInMinutes($e->clock_out_at) - $totalBreak;
+                    $effectiveMinutes = (int) $e->clock_in_at->diffInMinutes($e->clock_out_at) - $totalBreak + $shiftBreak;
                 }
                 $entryReqs = $allEntryPending->get($e->id, collect());
                 $empReq    = $entryReqs->firstWhere('initiated_by', 'employee');
@@ -300,7 +318,7 @@ class TimeTrackingService
         $start = Carbon::createFromDate($year, $month, 1)->startOfMonth();
         $end   = $start->copy()->endOfMonth();
 
-        $query = TimeEntry::with('breaks', 'employee')
+        $query = TimeEntry::with('breaks', 'shift', 'employee')
             ->whereHas('employee', fn($q) => $q->where('company_id', $companyId))
             ->whereBetween('date', [$start->toDateString(), $end->toDateString()])
             ->orderByDesc('date')
@@ -331,8 +349,9 @@ class TimeTrackingService
 
         return $entries->map(function (TimeEntry $e) use ($allEntryPending, $allBreakPending) {
             $totalBreak       = $e->breaks->whereNotNull('break_end_at')->sum('duration_minutes');
+            $shiftBreak       = (int) ($e->shift?->break_duration ?? 0);
             $effectiveMinutes = ($e->clock_in_at && $e->clock_out_at)
-                ? (int) $e->clock_in_at->diffInMinutes($e->clock_out_at) - $totalBreak
+                ? (int) $e->clock_in_at->diffInMinutes($e->clock_out_at) - $totalBreak + $shiftBreak
                 : null;
 
             $entryReqs = $allEntryPending->get($e->id, collect());
@@ -401,24 +420,160 @@ class TimeTrackingService
         $employee = $user->employee;
         if (! $employee) return [];
 
-        return TimeEntry::with('breaks')
+        $entries = TimeEntry::with(['breaks', 'shift'])
             ->where('employee_id', $employee->id)
             ->where('date', '>=', Carbon::today()->subDays($days))
             ->orderByDesc('clock_in_at')
-            ->get()
-            ->map(function (TimeEntry $e) {
+            ->get();
+
+        $entryIds = $entries->pluck('id');
+
+        try {
+            $pendingReqs = TimeEntryEditRequest::where('status', 'pending')
+                ->whereNull('break_id')
+                ->whereIn('time_entry_id', $entryIds)
+                ->get(['time_entry_id', 'type', 'initiated_by'])
+                ->groupBy('time_entry_id');
+        } catch (\Exception) {
+            $pendingReqs = collect();
+        }
+
+        return $entries->map(function (TimeEntry $e) use ($pendingReqs) {
                 $totalBreak = $e->breaks->whereNotNull('break_end_at')->sum('duration_minutes');
+                $shiftBreak = (int) ($e->shift?->break_duration ?? 0);
                 $effectiveMinutes = null;
                 if ($e->clock_in_at && $e->clock_out_at) {
-                    $effectiveMinutes = (int) $e->clock_in_at->diffInMinutes($e->clock_out_at) - $totalBreak;
+                    $effectiveMinutes = (int) $e->clock_in_at->diffInMinutes($e->clock_out_at) - $totalBreak + $shiftBreak;
                 }
+                $reqs   = $pendingReqs->get($e->id, collect());
+                $empReq = $reqs->firstWhere('initiated_by', 'employee');
+                $admReq = $reqs->firstWhere('initiated_by', 'admin');
                 return array_merge($e->toArray(), [
-                    'total_break_minutes' => (int) $totalBreak,
-                    'effective_minutes'   => $effectiveMinutes,
+                    'clock_in_at'           => $e->clock_in_at?->toIso8601String(),
+                    'clock_out_at'          => $e->clock_out_at?->toIso8601String(),
+                    'total_break_minutes'   => (int) $totalBreak,
+                    'effective_minutes'     => $effectiveMinutes,
+                    'pending_request_type'  => $empReq?->type,
+                    'pending_admin_request' => $admReq ? ['type' => $admReq->type] : null,
                 ]);
             })
             ->values()
             ->toArray();
+    }
+
+    public function adminClockOut(User $admin, int $entryId, Request $request): void
+    {
+        $companyId = $admin->company_id ?? $admin->employee?->company_id;
+        if (! $companyId) throw new \Exception('No tens empresa associada.');
+
+        $entry = TimeEntry::with('breaks')
+            ->where('id', $entryId)
+            ->whereHas('employee', fn($q) => $q->where('company_id', $companyId))
+            ->whereIn('work_status', ['clocked_in', 'on_break'])
+            ->firstOrFail();
+
+        $nowUtc = now()->utc();
+
+        $openBreak = $entry->breaks()->whereNull('break_end_at')->first();
+        if ($openBreak) {
+            $duration = (int) $openBreak->break_start_at->diffInMinutes($nowUtc);
+            $openBreak->update(['break_end_at' => $nowUtc, 'duration_minutes' => $duration]);
+        }
+
+        $entry->update(['clock_out_at' => $nowUtc, 'work_status' => 'clocked_out']);
+        $this->log($entry, 'clock_out', $admin, $admin->employee, $request, ['by_admin' => true]);
+
+        $entry->load('employee.user');
+        $employeeUser = $entry->employee?->user;
+        if ($employeeUser) {
+            app(\App\Services\NotificationService::class)->send(
+                $employeeUser->id,
+                'shift_closed_by_admin',
+                'Torn tancat per l\'administrador',
+                "L'administrador ha tancat el teu torn obert del {$entry->date?->format('d/m/Y')}.",
+                ['time_entry_id' => $entry->id]
+            );
+        }
+    }
+
+    public function adminEditEntry(User $admin, int $entryId, array $data, Request $request): array
+    {
+        $companyId = $admin->company_id ?? $admin->employee?->company_id;
+        if (! $companyId) throw new \Exception('No tens empresa associada.');
+
+        $entry = TimeEntry::with(['breaks', 'shift', 'employee.user'])
+            ->where('id', $entryId)
+            ->whereHas('employee', fn($q) => $q->where('company_id', $companyId))
+            ->firstOrFail();
+
+        if (isset($data['clock_out_at']) && ! $entry->clock_out_at) {
+            throw new \Exception('No es pot modificar la sortida d\'un fitxatge sense sortida registrada.');
+        }
+
+        $updates = [];
+        if (!empty($data['clock_in_at']))  $updates['clock_in_at']  = Carbon::parse($data['clock_in_at']);
+        if (!empty($data['clock_out_at'])) $updates['clock_out_at'] = Carbon::parse($data['clock_out_at']);
+        if (empty($updates)) throw new \Exception('No hi ha cap canvi per aplicar.');
+
+        $entry->update($updates);
+        $entry->refresh();
+        $this->log($entry, 'edited_by_admin', $admin, $admin->employee, $request, ['by_admin' => true]);
+
+        $employeeUser = $entry->employee?->user;
+        if ($employeeUser) {
+            app(\App\Services\NotificationService::class)->send(
+                $employeeUser->id,
+                'time_entry_edited',
+                'Fitxatge modificat per l\'administrador',
+                "S'ha modificat el teu fitxatge del {$entry->date?->format('d/m/Y')}.",
+                ['time_entry_id' => $entry->id]
+            );
+        }
+
+        $totalBreak = $entry->breaks->whereNotNull('break_end_at')->sum('duration_minutes');
+        $shiftBreak = (int) ($entry->shift?->break_duration ?? 0);
+        $effectiveMinutes = ($entry->clock_in_at && $entry->clock_out_at)
+            ? (int) $entry->clock_in_at->diffInMinutes($entry->clock_out_at) - $totalBreak + $shiftBreak
+            : null;
+
+        return array_merge($entry->toArray(), [
+            'clock_in_at'         => $entry->clock_in_at?->toIso8601String(),
+            'clock_out_at'        => $entry->clock_out_at?->toIso8601String(),
+            'total_break_minutes' => (int) $totalBreak,
+            'effective_minutes'   => $effectiveMinutes,
+        ]);
+    }
+
+    public function adminDeleteEntry(User $admin, int $entryId, Request $request): void
+    {
+        $companyId = $admin->company_id ?? $admin->employee?->company_id;
+        if (! $companyId) throw new \Exception('No tens empresa associada.');
+
+        $entry = TimeEntry::with('employee.user')
+            ->where('id', $entryId)
+            ->whereHas('employee', fn($q) => $q->where('company_id', $companyId))
+            ->firstOrFail();
+
+        $employeeUser = $entry->employee?->user;
+        $date         = $entry->date?->format('d/m/Y');
+
+        $this->log($entry, 'deleted_by_admin', $admin, $admin->employee, $request, [
+            'date'        => $entry->date?->toDateString(),
+            'clock_in_at' => $entry->clock_in_at?->toIso8601String(),
+            'by_admin'    => true,
+        ]);
+
+        $entry->delete();
+
+        if ($employeeUser) {
+            app(\App\Services\NotificationService::class)->send(
+                $employeeUser->id,
+                'time_entry_deleted',
+                'Fitxatge eliminat per l\'administrador',
+                "S'ha eliminat el teu fitxatge del {$date}.",
+                []
+            );
+        }
     }
 
     // ── Privat ────────────────────────────────────────────────────────────────
@@ -430,11 +585,11 @@ class TimeTrackingService
 
         $entry = TimeEntry::with('breaks')
             ->where('employee_id', $employee->id)
-            ->whereDate('date', Carbon::today())
             ->whereIn('work_status', ['clocked_in', 'on_break'])
+            ->latest('clock_in_at')
             ->first();
 
-        if (! $entry) throw new \Exception('No tens cap torn actiu avui.');
+        if (! $entry) throw new \Exception('No tens cap torn actiu.');
 
         return $entry;
     }

@@ -91,15 +91,25 @@
             <template v-else-if="req.type === 'edit'">
               <div v-if="req.requested_data?.clock_in_at" class="text-xs">
                 <span class="text-gray-400">Entrada: </span>
-                <span class="font-mono text-gray-500 line-through">{{ formatTime(req.original_data?.clock_in_at) }}</span>
-                <span class="mx-1 text-gray-400">→</span>
-                <span class="font-mono font-medium text-blue-700">{{ formatTime(req.requested_data?.clock_in_at) }}</span>
+                <template v-if="isSameTime(req.original_data?.clock_in_at, req.requested_data?.clock_in_at)">
+                  <span class="font-mono">{{ formatTime(req.original_data?.clock_in_at) }}</span>
+                </template>
+                <template v-else>
+                  <span class="font-mono text-gray-500 line-through">{{ fmtEdit(req.original_data?.clock_in_at, req.requested_data?.clock_in_at) }}</span>
+                  <span class="mx-1 text-gray-400">→</span>
+                  <span class="font-mono font-medium text-blue-700">{{ fmtEdit(req.requested_data?.clock_in_at, req.original_data?.clock_in_at) }}</span>
+                </template>
               </div>
               <div v-if="req.requested_data?.clock_out_at" class="text-xs">
                 <span class="text-gray-400">Sortida: </span>
-                <span class="font-mono text-gray-500 line-through">{{ formatTime(req.original_data?.clock_out_at) }}</span>
-                <span class="mx-1 text-gray-400">→</span>
-                <span class="font-mono font-medium text-blue-700">{{ formatTime(req.requested_data?.clock_out_at) }}</span>
+                <template v-if="isSameTime(req.original_data?.clock_out_at, req.requested_data?.clock_out_at)">
+                  <span class="font-mono">{{ formatTime(req.original_data?.clock_out_at) }}</span>
+                </template>
+                <template v-else>
+                  <span class="font-mono text-gray-500 line-through">{{ fmtEdit(req.original_data?.clock_out_at, req.requested_data?.clock_out_at) }}</span>
+                  <span class="mx-1 text-gray-400">→</span>
+                  <span class="font-mono font-medium text-blue-700">{{ fmtEdit(req.requested_data?.clock_out_at, req.original_data?.clock_out_at) }}</span>
+                </template>
               </div>
             </template>
             <template v-else-if="req.type === 'break_delete'">
@@ -115,15 +125,25 @@
             <template v-else-if="req.type === 'break_edit'">
               <div v-if="req.requested_data?.break_start_at" class="text-xs">
                 <span class="text-gray-400">Inici: </span>
-                <span class="font-mono text-gray-500 line-through">{{ formatTime(req.original_data?.break_start_at) }}</span>
-                <span class="mx-1 text-gray-400">→</span>
-                <span class="font-mono font-medium text-blue-700">{{ formatTime(req.requested_data?.break_start_at) }}</span>
+                <template v-if="isSameTime(req.original_data?.break_start_at, req.requested_data?.break_start_at)">
+                  <span class="font-mono">{{ formatTime(req.original_data?.break_start_at) }}</span>
+                </template>
+                <template v-else>
+                  <span class="font-mono text-gray-500 line-through">{{ fmtEdit(req.original_data?.break_start_at, req.requested_data?.break_start_at) }}</span>
+                  <span class="mx-1 text-gray-400">→</span>
+                  <span class="font-mono font-medium text-blue-700">{{ fmtEdit(req.requested_data?.break_start_at, req.original_data?.break_start_at) }}</span>
+                </template>
               </div>
               <div v-if="req.requested_data?.break_end_at" class="text-xs">
                 <span class="text-gray-400">Final: </span>
-                <span class="font-mono text-gray-500 line-through">{{ formatTime(req.original_data?.break_end_at) }}</span>
-                <span class="mx-1 text-gray-400">→</span>
-                <span class="font-mono font-medium text-blue-700">{{ formatTime(req.requested_data?.break_end_at) }}</span>
+                <template v-if="isSameTime(req.original_data?.break_end_at, req.requested_data?.break_end_at)">
+                  <span class="font-mono">{{ formatTime(req.original_data?.break_end_at) }}</span>
+                </template>
+                <template v-else>
+                  <span class="font-mono text-gray-500 line-through">{{ fmtEdit(req.original_data?.break_end_at, req.requested_data?.break_end_at) }}</span>
+                  <span class="mx-1 text-gray-400">→</span>
+                  <span class="font-mono font-medium text-blue-700">{{ fmtEdit(req.requested_data?.break_end_at, req.original_data?.break_end_at) }}</span>
+                </template>
               </div>
             </template>
 
@@ -260,6 +280,20 @@ async function confirmDeny(id) {
 function formatTime(iso) {
   if (!iso) return '—'
   return new Date(iso).toLocaleTimeString('ca-ES', { hour: '2-digit', minute: '2-digit' })
+}
+function isSameTime(iso1, iso2) {
+  if (!iso1 || !iso2) return false
+  return new Date(iso1).getTime() === new Date(iso2).getTime()
+}
+function fmtEdit(iso, peerIso) {
+  if (!iso) return '—'
+  const d = new Date(iso)
+  const time = d.toLocaleTimeString('ca-ES', { hour: '2-digit', minute: '2-digit' })
+  if (!peerIso) return time
+  const p = new Date(peerIso)
+  const sameDay = d.getFullYear() === p.getFullYear() && d.getMonth() === p.getMonth() && d.getDate() === p.getDate()
+  if (sameDay) return time
+  return d.toLocaleDateString('ca-ES', { weekday: 'short', day: 'numeric', month: 'short' }) + ' ' + time
 }
 function formatDateLong(d) {
   if (!d) return '—'

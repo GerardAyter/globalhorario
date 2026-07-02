@@ -33,6 +33,10 @@ class TimeEntryEditRequestController extends BaseController
             'clock_out_at' => $validated['clock_out_at'] ?? null,
         ], fn($v) => $v !== null);
 
+        if (isset($requestedData['clock_out_at']) && ! $entry->clock_out_at) {
+            return $this->error('No es pot modificar la sortida d\'un fitxatge sense sortida registrada.', null, 422);
+        }
+
         try {
             $req = $this->service->createRequest($request->user(), $entry, $requestedData, $reason);
             return $this->success($req->toArray(), 'Sol·licitud enviada correctament.', null, 201);
@@ -113,13 +117,18 @@ class TimeEntryEditRequestController extends BaseController
 
     public function storeAdminEntryEdit(Request $request, int $id)
     {
-        $entry = TimeEntry::findOrFail($id);
+        $entry = TimeEntry::with('employee.user')->findOrFail($id);
         $validated = $request->validate([
             'clock_in_at'  => 'nullable|date_format:Y-m-d\TH:i',
             'clock_out_at' => 'nullable|date_format:Y-m-d\TH:i',
             'reason'       => 'required|string|max:500',
         ]);
         $requestedData = array_filter(['clock_in_at' => $validated['clock_in_at'] ?? null, 'clock_out_at' => $validated['clock_out_at'] ?? null], fn($v) => $v !== null);
+
+        if (isset($requestedData['clock_out_at']) && ! $entry->clock_out_at) {
+            return $this->error('No es pot modificar la sortida d\'un fitxatge sense sortida registrada.', null, 422);
+        }
+
         try {
             $req = $this->service->createAdminEntryEdit($request->user(), $entry, $requestedData, $validated['reason']);
             return $this->success($req->toArray(), 'Sol·licitud enviada a l\'empleat.', null, 201);

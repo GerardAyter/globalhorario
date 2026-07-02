@@ -100,8 +100,8 @@
 
       <div v-else class="divide-y divide-gray-100">
         <div v-for="e in history" :key="e.id"
-             class="px-5 py-3 flex items-center gap-4 hover:bg-gray-50 transition-colors">
-          <div class="w-32 flex-shrink-0">
+             class="px-5 py-3 flex items-center gap-3 hover:bg-gray-50 transition-colors group">
+          <div class="w-28 flex-shrink-0">
             <p class="text-sm font-medium text-gray-900 capitalize">{{ formatDate(e.date) }}</p>
           </div>
           <div class="flex items-center gap-3 flex-1 text-sm text-gray-600">
@@ -110,13 +110,20 @@
             </span>
             <span class="text-gray-300">→</span>
             <span class="flex items-center gap-1">
-              <IconLogout class="w-3.5 h-3.5 text-red-400" />{{ e.clock_out_at ? formatTime(e.clock_out_at) : '—' }}
+              <IconLogout class="w-3.5 h-3.5 text-red-400" />
+              <span class="relative">
+                {{ e.clock_out_at ? formatTime(e.clock_out_at) : '—' }}
+                <sup v-if="dayDiff(e.clock_out_at, e.clock_in_at) > 0"
+                     class="absolute -top-1.5 -right-3 text-[9px] font-bold text-blue-500">
+                  +{{ dayDiff(e.clock_out_at, e.clock_in_at) }}
+                </sup>
+              </span>
             </span>
             <span v-if="e.total_break_minutes > 0" class="flex items-center gap-1 text-xs text-gray-400">
               <IconCoffee class="w-3 h-3" />{{ formatDuration(e.total_break_minutes) }}
             </span>
           </div>
-          <div class="w-20 text-right flex-shrink-0">
+          <div class="w-16 text-right flex-shrink-0">
             <span v-if="e.effective_minutes != null"
                   class="text-sm font-mono font-medium"
                   :class="e.effective_minutes < 420 ? 'text-amber-600' : 'text-gray-900'">
@@ -124,10 +131,31 @@
             </span>
             <span v-else class="text-xs text-gray-300">en curs</span>
           </div>
-          <div class="w-20 text-right flex-shrink-0">
+          <div class="w-16 text-right flex-shrink-0">
             <span class="text-[10px] font-medium px-2 py-0.5 rounded-full" :class="statusBadge(e.work_status)">
               {{ statusLabel(e.work_status) }}
             </span>
+          </div>
+          <!-- Accions -->
+          <div class="w-14 flex items-center justify-end gap-0.5 flex-shrink-0">
+            <span v-if="e.pending_request_type"
+                  class="text-[9px] font-medium px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700">
+              Pendent
+            </span>
+            <span v-else-if="e.pending_admin_request"
+                  class="text-[9px] font-medium px-1.5 py-0.5 rounded-full bg-purple-50 text-purple-700">
+              Per admin
+            </span>
+            <template v-else>
+              <button @click.stop="openEdit(e)" title="Sol·licitar edició"
+                      class="w-6 h-6 flex items-center justify-center rounded-md text-gray-300 hover:text-amber-600 hover:bg-amber-50 transition-colors opacity-0 group-hover:opacity-100">
+                <IconPencil class="w-3 h-3" />
+              </button>
+              <button @click.stop="openDelete(e)" title="Sol·licitar eliminació"
+                      class="w-6 h-6 flex items-center justify-center rounded-md text-gray-300 hover:text-red-600 hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100">
+                <IconTrash class="w-3 h-3" />
+              </button>
+            </template>
           </div>
         </div>
       </div>
@@ -175,7 +203,7 @@
 
         <div v-else class="divide-y divide-gray-100">
           <div v-for="e in companyEntries" :key="e.id"
-               class="px-5 py-3 flex items-center gap-4 hover:bg-gray-50 transition-colors">
+               class="px-5 py-3 flex items-center gap-4 hover:bg-gray-50 transition-colors group">
 
             <!-- Avatar empleat -->
             <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold text-white flex-shrink-0"
@@ -196,11 +224,18 @@
             <!-- Hores -->
             <div class="flex items-center gap-3 flex-1 text-sm text-gray-600">
               <span class="flex items-center gap-1">
-                <IconLogin class="w-3.5 h-3.5 text-green-500" />{{ formatTime(e.clock_in_at) }}
+                <IconLogin class="w-3.5 h-3.5 text-green-500" />{{ formatTimeWithDay(e.clock_in_at) }}
               </span>
               <span class="text-gray-300">→</span>
               <span class="flex items-center gap-1">
-                <IconLogout class="w-3.5 h-3.5 text-red-400" />{{ e.clock_out_at ? formatTime(e.clock_out_at) : '—' }}
+                <IconLogout class="w-3.5 h-3.5 text-red-400" />
+                <span class="relative">
+                  {{ e.clock_out_at ? formatTime(e.clock_out_at) : '—' }}
+                  <sup v-if="dayDiff(e.clock_out_at, e.clock_in_at) > 0"
+                       class="absolute -top-1.5 -right-3 text-[9px] font-bold text-blue-500">
+                    +{{ dayDiff(e.clock_out_at, e.clock_in_at) }}
+                  </sup>
+                </span>
               </span>
               <span v-if="e.total_break_minutes > 0" class="flex items-center gap-1 text-xs text-gray-400">
                 <IconCoffee class="w-3 h-3" />{{ formatDuration(e.total_break_minutes) }}
@@ -222,6 +257,32 @@
                 <span v-if="e.work_status === 'on_break'" class="inline-block w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse mr-1" />
                 {{ statusLabel(e.work_status) }}
               </span>
+            </div>
+
+            <!-- Accions admin -->
+            <div class="w-20 flex items-center justify-end gap-0.5 flex-shrink-0">
+              <span v-if="e.pending_admin_request"
+                    class="text-[9px] font-medium px-1.5 py-0.5 rounded-full bg-purple-50 text-purple-700 opacity-0 group-hover:opacity-100">
+                Pendent aprob.
+              </span>
+              <template v-else>
+                <button v-if="!e.clock_out_at"
+                        @click.stop="doAdminClockOut(e)"
+                        :disabled="adminClockingOutId === e.id"
+                        title="Tancar torn"
+                        class="w-6 h-6 flex items-center justify-center rounded-md transition-colors opacity-0 group-hover:opacity-100"
+                        :class="adminClockingOutId === e.id ? 'text-gray-200 cursor-not-allowed' : 'text-gray-400 hover:text-green-600 hover:bg-green-50'">
+                  <IconLogout class="w-3 h-3" />
+                </button>
+                <button @click.stop="openAdminEdit(e)" title="Sol·licitar modificació"
+                        class="w-6 h-6 flex items-center justify-center rounded-md text-gray-300 hover:text-amber-600 hover:bg-amber-50 transition-colors opacity-0 group-hover:opacity-100">
+                  <IconPencil class="w-3 h-3" />
+                </button>
+                <button @click.stop="openAdminDelete(e)" title="Sol·licitar eliminació"
+                        class="w-6 h-6 flex items-center justify-center rounded-md text-gray-300 hover:text-red-600 hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100">
+                  <IconTrash class="w-3 h-3" />
+                </button>
+              </template>
             </div>
           </div>
         </div>
@@ -255,15 +316,223 @@
       </template>
     </div>
   </div>
+
+  <!-- ── MODAL EDITAR ──────────────────────────────────────────────────────── -->
+  <Teleport to="body">
+    <div v-if="editModal" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4"
+         @click.self="editModal = false">
+      <div class="bg-white rounded-xl shadow-xl w-full max-w-md">
+        <div class="flex items-center justify-between px-5 py-4 border-b">
+          <h3 class="font-medium text-gray-900">Sol·licitar modificació</h3>
+          <button @click="editModal = false" class="text-gray-400 hover:text-gray-600">
+            <IconX class="w-5 h-5" />
+          </button>
+        </div>
+        <div v-if="selected && !editSuccess" class="px-5 py-4 space-y-4">
+          <p class="text-xs text-gray-500">
+            Fitxatge del <strong class="capitalize">{{ formatDateLong(selected.date) }}</strong>.
+            La modificació ha de ser aprovada per un administrador.
+          </p>
+          <div class="bg-gray-50 rounded-xl p-3 text-xs text-gray-500 space-y-1">
+            <p>Entrada actual: <span class="font-mono font-medium text-gray-700">{{ formatTime(selected.clock_in_at) }}</span></p>
+            <p>Sortida actual: <span class="font-mono font-medium text-gray-700">{{ selected.clock_out_at ? formatTime(selected.clock_out_at) : 'no registrada' }}</span></p>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-600 mb-1">Nova hora d'entrada</label>
+            <input v-model="editForm.clock_in_at" type="datetime-local"
+                   class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          </div>
+          <div v-if="selected.clock_out_at">
+            <label class="block text-xs font-medium text-gray-600 mb-1">Nova hora de sortida <span class="text-gray-400">(opcional)</span></label>
+            <input v-model="editForm.clock_out_at" type="datetime-local"
+                   class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-600 mb-1">Motiu <span class="text-red-500">*</span></label>
+            <textarea v-model="editForm.reason" rows="3" maxlength="500" placeholder="Explica el motiu del canvi..."
+                      class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          </div>
+          <div v-if="editError" class="bg-red-50 border border-red-200 text-red-700 text-xs rounded-lg p-3">{{ editError }}</div>
+        </div>
+        <div v-if="editSuccess" class="px-5 py-8 flex flex-col items-center text-center gap-3">
+          <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
+            <IconCheck class="w-6 h-6 text-green-600" />
+          </div>
+          <p class="text-sm font-medium text-gray-900">Sol·licitud enviada</p>
+          <p class="text-xs text-gray-400">Un administrador la revisarà aviat.</p>
+        </div>
+        <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
+          <button @click="editModal = false" class="px-4 py-2 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50">
+            {{ editSuccess ? 'Tancar' : 'Cancel·lar' }}
+          </button>
+          <button v-if="!editSuccess" @click="submitEdit" :disabled="editSaving || !editForm.reason.trim()"
+                  class="px-4 py-2 text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white rounded-lg disabled:opacity-60 flex items-center gap-2">
+            <svg v-if="editSaving" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/></svg>
+            {{ editSaving ? 'Enviant...' : 'Enviar sol·licitud' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </Teleport>
+
+  <!-- ── MODAL ELIMINAR ────────────────────────────────────────────────────── -->
+  <Teleport to="body">
+    <div v-if="deleteModal" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4"
+         @click.self="deleteModal = false">
+      <div class="bg-white rounded-xl shadow-xl w-full max-w-sm">
+        <div class="px-5 py-4 border-b flex items-center justify-between">
+          <h3 class="font-medium text-gray-900">Sol·licitar eliminació</h3>
+          <button @click="deleteModal = false" class="text-gray-400 hover:text-gray-600">
+            <IconX class="w-5 h-5" />
+          </button>
+        </div>
+        <div v-if="selected && !deleteSuccess" class="px-5 py-4 space-y-3">
+          <p class="text-sm text-gray-600">
+            Sol·licites eliminar el fitxatge del
+            <strong class="capitalize">{{ formatDateLong(selected.date) }}</strong>.
+            Un administrador haurà d'aprovar-ho.
+          </p>
+          <div class="bg-gray-50 rounded-xl p-3 text-xs text-gray-500 space-y-1">
+            <p>Entrada: <span class="font-mono font-medium text-gray-700">{{ formatTime(selected.clock_in_at) }}</span></p>
+            <p v-if="selected.clock_out_at">Sortida: <span class="font-mono font-medium text-gray-700">{{ formatTime(selected.clock_out_at) }}</span></p>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-600 mb-1">Motiu <span class="text-red-500">*</span></label>
+            <textarea v-model="deleteReason" rows="3" maxlength="500"
+                      class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-red-500" />
+          </div>
+          <div v-if="deleteError" class="bg-red-50 border border-red-200 text-red-700 text-xs rounded-lg p-3">{{ deleteError }}</div>
+        </div>
+        <div v-if="deleteSuccess" class="px-5 py-8 flex flex-col items-center text-center gap-3">
+          <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
+            <IconCheck class="w-6 h-6 text-green-600" />
+          </div>
+          <p class="text-sm font-medium text-gray-900">Sol·licitud enviada</p>
+        </div>
+        <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
+          <button @click="deleteModal = false" class="px-4 py-2 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50">
+            {{ deleteSuccess ? 'Tancar' : 'Cancel·lar' }}
+          </button>
+          <button v-if="!deleteSuccess" @click="submitDelete" :disabled="deleteSaving || !deleteReason.trim()"
+                  class="px-4 py-2 text-sm font-medium bg-red-600 hover:bg-red-700 text-white rounded-lg disabled:opacity-60 flex items-center gap-2">
+            <svg v-if="deleteSaving" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/></svg>
+            {{ deleteSaving ? 'Enviant...' : 'Sol·licitar eliminació' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </Teleport>
+
+  <!-- ── MODAL ADMIN: SOL·LICITAR MODIFICACIÓ ────────────────────────────── -->
+  <Teleport to="body">
+    <div v-if="adminEditModal" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4"
+         @click.self="adminEditModal = false">
+      <div class="bg-white rounded-xl shadow-xl w-full max-w-md">
+        <div class="flex items-center justify-between px-5 py-4 border-b">
+          <h3 class="font-medium text-gray-900">Sol·licitar modificació de fitxatge</h3>
+          <button @click="adminEditModal = false" class="text-gray-400 hover:text-gray-600"><IconX class="w-5 h-5" /></button>
+        </div>
+        <div v-if="selected && !adminEditSuccess" class="px-5 py-4 space-y-4">
+          <p class="text-xs text-gray-500">
+            Fitxatge de <strong>{{ selected.employee?.nom }} {{ selected.employee?.cognoms }}</strong>
+            del <strong class="capitalize">{{ formatDateLong(selected.date) }}</strong>.
+            L'empleat haurà d'aprovar el canvi.
+          </p>
+          <div class="bg-gray-50 rounded-xl p-3 text-xs text-gray-500 space-y-1">
+            <p>Entrada actual: <span class="font-mono font-medium text-gray-700">{{ formatTime(selected.clock_in_at) }}</span></p>
+            <p>Sortida actual: <span class="font-mono font-medium text-gray-700">{{ selected.clock_out_at ? formatTime(selected.clock_out_at) : 'no registrada' }}</span></p>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-600 mb-1">Nova hora d'entrada</label>
+            <input v-model="adminEditForm.clock_in_at" type="datetime-local"
+                   class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          </div>
+          <div v-if="selected.clock_out_at">
+            <label class="block text-xs font-medium text-gray-600 mb-1">Nova hora de sortida</label>
+            <input v-model="adminEditForm.clock_out_at" type="datetime-local"
+                   class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-600 mb-1">Motiu <span class="text-red-500">*</span></label>
+            <textarea v-model="adminEditForm.reason" rows="3" maxlength="500"
+                      class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          </div>
+          <div v-if="adminEditError" class="bg-red-50 border border-red-200 text-red-700 text-xs rounded-lg p-3">{{ adminEditError }}</div>
+        </div>
+        <div v-if="adminEditSuccess" class="px-5 py-8 flex flex-col items-center text-center gap-3">
+          <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center"><IconCheck class="w-6 h-6 text-green-600" /></div>
+          <p class="text-sm font-medium text-gray-900">Sol·licitud enviada a l'empleat</p>
+          <p class="text-xs text-gray-500">L'empleat rebrà una notificació i haurà d'aprovar el canvi.</p>
+        </div>
+        <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
+          <button @click="adminEditModal = false" class="px-4 py-2 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50">
+            {{ adminEditSuccess ? 'Tancar' : 'Cancel·lar' }}
+          </button>
+          <button v-if="!adminEditSuccess" @click="submitAdminEdit" :disabled="adminEditSaving || !adminEditForm.reason.trim()"
+                  class="px-4 py-2 text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white rounded-lg disabled:opacity-60 flex items-center gap-2">
+            <svg v-if="adminEditSaving" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/></svg>
+            {{ adminEditSaving ? 'Enviant...' : 'Enviar sol·licitud' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </Teleport>
+
+  <!-- ── MODAL ADMIN: SOL·LICITAR ELIMINACIÓ ──────────────────────────────── -->
+  <Teleport to="body">
+    <div v-if="adminDeleteModal" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4"
+         @click.self="adminDeleteModal = false">
+      <div class="bg-white rounded-xl shadow-xl w-full max-w-sm">
+        <div class="px-5 py-4 border-b flex items-center justify-between">
+          <h3 class="font-medium text-gray-900">Sol·licitar eliminació</h3>
+          <button @click="adminDeleteModal = false" class="text-gray-400 hover:text-gray-600"><IconX class="w-5 h-5" /></button>
+        </div>
+        <div v-if="selected && !adminDeleteSuccess" class="px-5 py-4 space-y-3">
+          <p class="text-sm text-gray-600">
+            Sol·licites eliminar el fitxatge de
+            <strong class="text-gray-900">{{ selected.employee?.nom }} {{ selected.employee?.cognoms }}</strong>
+            del <strong class="capitalize">{{ formatDateLong(selected.date) }}</strong>.
+            L'empleat haurà d'aprovar-ho.
+          </p>
+          <div class="bg-gray-50 rounded-xl p-3 text-xs text-gray-500 space-y-1">
+            <p>Entrada: <span class="font-mono font-medium text-gray-700">{{ formatTime(selected.clock_in_at) }}</span></p>
+            <p v-if="selected.clock_out_at">Sortida: <span class="font-mono font-medium text-gray-700">{{ formatTime(selected.clock_out_at) }}</span></p>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-600 mb-1">Motiu <span class="text-red-500">*</span></label>
+            <textarea v-model="adminDeleteReason" rows="3" maxlength="500"
+                      class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-red-500" />
+          </div>
+          <div v-if="adminDeleteError" class="bg-red-50 border border-red-200 text-red-700 text-xs rounded-lg p-3">{{ adminDeleteError }}</div>
+        </div>
+        <div v-if="adminDeleteSuccess" class="px-5 py-8 flex flex-col items-center text-center gap-3">
+          <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center"><IconCheck class="w-6 h-6 text-green-600" /></div>
+          <p class="text-sm font-medium text-gray-900">Sol·licitud enviada a l'empleat</p>
+          <p class="text-xs text-gray-500">L'empleat rebrà una notificació i haurà d'aprovar-ho.</p>
+        </div>
+        <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
+          <button @click="adminDeleteModal = false" class="px-4 py-2 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50">
+            {{ adminDeleteSuccess ? 'Tancar' : 'Cancel·lar' }}
+          </button>
+          <button v-if="!adminDeleteSuccess" @click="submitAdminDelete" :disabled="adminDeleteSaving || !adminDeleteReason.trim()"
+                  class="px-4 py-2 text-sm font-medium bg-red-600 hover:bg-red-700 text-white rounded-lg disabled:opacity-60 flex items-center gap-2">
+            <svg v-if="adminDeleteSaving" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/></svg>
+            {{ adminDeleteSaving ? 'Enviant...' : 'Enviar sol·licitud' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </Teleport>
 </template>
 
 <script setup>
 import { ref, watch, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { IconLogin, IconLogout, IconCoffee, IconClock, IconArrowsHorizontal, IconRefresh, IconAlertTriangle, IconHistory } from '@tabler/icons-vue'
+import { IconLogin, IconLogout, IconCoffee, IconClock, IconArrowsHorizontal, IconRefresh, IconAlertTriangle, IconHistory, IconPencil, IconTrash, IconX, IconCheck } from '@tabler/icons-vue'
 import { useAuthStore } from '../stores/auth'
 import TimeTrackingWidget from '../components/TimeTrackingWidget.vue'
 import { useTimeTracking } from '../composables/useTimeTracking'
+import api from '../services/api'
 
 const router = useRouter()
 
@@ -328,6 +597,147 @@ function onActionDone() {
   if (isToday.value) fetchCompanyEntries()
 }
 
+// ── Modals edició / eliminació (historial personal) ───────────────────────────
+const selected      = ref(null)
+const editModal     = ref(false)
+const editForm      = ref({ clock_in_at: '', clock_out_at: '', reason: '' })
+const editError     = ref('')
+const editSuccess   = ref(false)
+const editSaving    = ref(false)
+const deleteModal   = ref(false)
+const deleteReason  = ref('')
+const deleteError   = ref('')
+const deleteSuccess = ref(false)
+const deleteSaving  = ref(false)
+
+// ── Admin: accions directes sobre Empresa — fitxatges ─────────────────────────
+const adminClockingOutId = ref(null)
+const adminEditModal     = ref(false)
+const adminEditForm      = ref({ clock_in_at: '', clock_out_at: '', reason: '' })
+const adminEditError     = ref('')
+const adminEditSuccess   = ref(false)
+const adminEditSaving    = ref(false)
+const adminDeleteModal   = ref(false)
+const adminDeleteReason  = ref('')
+const adminDeleteError   = ref('')
+const adminDeleteSuccess = ref(false)
+const adminDeleteSaving  = ref(false)
+
+async function doAdminClockOut(e) {
+  adminClockingOutId.value = e.id
+  try {
+    await api.post(`/v1/time-tracking/admin/entries/${e.id}/clock-out`)
+    await fetchCompanyEntries()
+  } catch (err) {
+    console.error(err?.response?.data?.message || err)
+  } finally {
+    adminClockingOutId.value = null
+  }
+}
+
+function openAdminEdit(e) {
+  selected.value         = e
+  adminEditForm.value    = { clock_in_at: toDatetimeLocal(e.clock_in_at), clock_out_at: toDatetimeLocal(e.clock_out_at), reason: '' }
+  adminEditError.value   = ''
+  adminEditSuccess.value = false
+  adminEditModal.value   = true
+}
+
+async function submitAdminEdit() {
+  adminEditError.value = ''; adminEditSaving.value = true
+  const payload = { reason: adminEditForm.value.reason }
+  if (adminEditForm.value.clock_in_at)  payload.clock_in_at  = localToUtc(adminEditForm.value.clock_in_at)
+  if (adminEditForm.value.clock_out_at) payload.clock_out_at = localToUtc(adminEditForm.value.clock_out_at)
+  try {
+    await api.post(`/v1/time-tracking/admin/entries/${selected.value.id}/edit-request`, payload)
+    const e = companyEntries.value.find(e => e.id === selected.value.id)
+    if (e) e.pending_admin_request = { type: 'edit' }
+    adminEditSuccess.value = true
+  } catch (err) {
+    adminEditError.value = err?.response?.data?.message || 'Error en enviar la sol·licitud.'
+  } finally { adminEditSaving.value = false }
+}
+
+function openAdminDelete(e) {
+  selected.value           = e
+  adminDeleteReason.value  = ''
+  adminDeleteError.value   = ''
+  adminDeleteSuccess.value = false
+  adminDeleteModal.value   = true
+}
+
+async function submitAdminDelete() {
+  adminDeleteError.value = ''; adminDeleteSaving.value = true
+  try {
+    await api.post(`/v1/time-tracking/admin/entries/${selected.value.id}/delete-request`, { reason: adminDeleteReason.value })
+    const e = companyEntries.value.find(e => e.id === selected.value.id)
+    if (e) e.pending_admin_request = { type: 'delete' }
+    adminDeleteSuccess.value = true
+  } catch (err) {
+    adminDeleteError.value = err?.response?.data?.message || 'Error en enviar la sol·licitud.'
+  } finally { adminDeleteSaving.value = false }
+}
+
+function localToUtc(s) {
+  if (!s) return null
+  return new Date(s).toISOString().slice(0, 16)
+}
+
+function toDatetimeLocal(iso) {
+  if (!iso) return ''
+  const d = new Date(iso)
+  const pad = n => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+}
+
+function formatDateLong(d) {
+  if (!d) return '—'
+  return new Date(d).toLocaleDateString('ca-ES', { weekday: 'long', day: 'numeric', month: 'long' })
+}
+
+function openEdit(e) {
+  selected.value    = e
+  editForm.value    = { clock_in_at: toDatetimeLocal(e.clock_in_at), clock_out_at: toDatetimeLocal(e.clock_out_at), reason: '' }
+  editError.value   = ''
+  editSuccess.value = false
+  editModal.value   = true
+}
+
+function openDelete(e) {
+  selected.value      = e
+  deleteReason.value  = ''
+  deleteError.value   = ''
+  deleteSuccess.value = false
+  deleteModal.value   = true
+}
+
+async function submitEdit() {
+  editError.value = ''; editSaving.value = true
+  const body = { reason: editForm.value.reason }
+  if (editForm.value.clock_in_at)  body.clock_in_at  = editForm.value.clock_in_at
+  if (editForm.value.clock_out_at) body.clock_out_at = editForm.value.clock_out_at
+  try {
+    await api.post(`/v1/time-tracking/entries/${selected.value.id}/edit-request`, body)
+    editSuccess.value = true
+    const entry = history.value.find(e => e.id === selected.value.id)
+    if (entry) entry.pending_request_type = 'edit'
+  } catch (err) {
+    editError.value = err?.response?.data?.message || 'Error en enviar la sol·licitud.'
+  } finally { editSaving.value = false }
+}
+
+async function submitDelete() {
+  deleteError.value = ''; deleteSaving.value = true
+  try {
+    await api.post(`/v1/time-tracking/entries/${selected.value.id}/delete-request`, { reason: deleteReason.value })
+    deleteSuccess.value = true
+    const entry = history.value.find(e => e.id === selected.value.id)
+    if (entry) entry.pending_request_type = 'delete'
+  } catch (err) {
+    deleteError.value = err?.response?.data?.message || 'Error en enviar la sol·licitud.'
+  } finally { deleteSaving.value = false }
+}
+
 onMounted(() => {
   loadToday()
   fetchHistory()
@@ -350,6 +760,27 @@ const totalEffectiveMinutes = computed(() =>
 function formatTime(iso) {
   if (!iso) return '—'
   return new Date(iso).toLocaleTimeString('ca-ES', { hour: '2-digit', minute: '2-digit' })
+}
+
+function formatTimeWithDay(iso) {
+  if (!iso) return '—'
+  const d = new Date(iso)
+  const now = new Date()
+  const isToday = d.getFullYear() === now.getFullYear() &&
+                  d.getMonth()    === now.getMonth()    &&
+                  d.getDate()     === now.getDate()
+  const time = d.toLocaleTimeString('ca-ES', { hour: '2-digit', minute: '2-digit' })
+  if (isToday) return time
+  return d.toLocaleDateString('ca-ES', { weekday: 'short', day: 'numeric', month: 'short' }) + ' ' + time
+}
+
+function dayDiff(outIso, inIso) {
+  if (!outIso || !inIso) return 0
+  const out = new Date(outIso)
+  const inn = new Date(inIso)
+  const outDay = new Date(out.getFullYear(), out.getMonth(), out.getDate())
+  const inDay  = new Date(inn.getFullYear(), inn.getMonth(), inn.getDate())
+  return Math.round((outDay - inDay) / 86400000)
 }
 
 function formatDate(d) {

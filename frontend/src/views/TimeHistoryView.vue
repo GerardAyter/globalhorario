@@ -106,7 +106,13 @@
           <div class="w-20 text-center pt-0.5">
             <span v-if="e.clock_out_at" class="flex items-center justify-center gap-1 text-sm text-gray-700">
               <IconLogout class="w-3.5 h-3.5 text-red-400 flex-shrink-0" />
-              {{ formatTime(e.clock_out_at) }}
+              <span class="relative">
+                {{ formatClockOut(e.clock_out_at, e.clock_in_at) }}
+                <sup v-if="dayDiff(e.clock_out_at, e.clock_in_at) > 0"
+                     class="absolute -top-1.5 -right-3 text-[9px] font-bold text-blue-500">
+                  +{{ dayDiff(e.clock_out_at, e.clock_in_at) }}
+                </sup>
+              </span>
             </span>
             <span v-else class="text-xs text-amber-600 font-medium">en curs</span>
           </div>
@@ -160,17 +166,17 @@
               <IconEye class="w-3.5 h-3.5" />
             </button>
             <button @click="openEdit(e)" title="Sol·licitar edició"
-                    :disabled="!!e.pending_request_type"
+                    :disabled="!!(e.pending_request_type || e.pending_admin_request)"
                     class="w-7 h-7 flex items-center justify-center rounded-lg transition-colors"
-                    :class="e.pending_request_type
+                    :class="(e.pending_request_type || e.pending_admin_request)
                       ? 'text-gray-200 cursor-not-allowed'
                       : 'text-gray-400 hover:bg-amber-50 hover:text-amber-600'">
               <IconPencil class="w-3.5 h-3.5" />
             </button>
             <button @click="openDelete(e)" title="Sol·licitar eliminació"
-                    :disabled="!!e.pending_request_type"
+                    :disabled="!!(e.pending_request_type || e.pending_admin_request)"
                     class="w-7 h-7 flex items-center justify-center rounded-lg transition-colors"
-                    :class="e.pending_request_type
+                    :class="(e.pending_request_type || e.pending_admin_request)
                       ? 'text-gray-200 cursor-not-allowed'
                       : 'text-gray-400 hover:bg-red-50 hover:text-red-600'">
               <IconTrash class="w-3.5 h-3.5" />
@@ -222,7 +228,14 @@
                   <IconLogout class="w-4 h-4 text-red-400" /> Sortida
                 </span>
                 <span class="font-mono font-medium" :class="selected.clock_out_at ? 'text-gray-900' : 'text-amber-600'">
-                  {{ selected.clock_out_at ? formatTime(selected.clock_out_at) : 'en curs' }}
+                  <span v-if="selected.clock_out_at" class="relative">
+                    {{ formatClockOut(selected.clock_out_at, selected.clock_in_at) }}
+                    <sup v-if="dayDiff(selected.clock_out_at, selected.clock_in_at) > 0"
+                         class="absolute -top-1.5 -right-3 text-[9px] font-bold text-blue-500">
+                      +{{ dayDiff(selected.clock_out_at, selected.clock_in_at) }}
+                    </sup>
+                  </span>
+                  <span v-else class="text-amber-600">en curs</span>
                 </span>
               </div>
               <div class="border-t pt-2 flex items-center justify-between text-sm">
@@ -299,7 +312,13 @@
             <!-- Valors actuals -->
             <div class="bg-gray-50 rounded-xl p-3 text-xs text-gray-500 space-y-1">
               <p>Entrada actual: <span class="font-mono font-medium text-gray-700">{{ formatTime(selected.clock_in_at) }}</span></p>
-              <p>Sortida actual: <span class="font-mono font-medium text-gray-700">{{ selected.clock_out_at ? formatTime(selected.clock_out_at) : 'no registrada' }}</span></p>
+              <p>Sortida actual: <span class="font-mono font-medium text-gray-700 relative inline-flex items-baseline gap-1">
+                {{ selected.clock_out_at ? formatClockOut(selected.clock_out_at, selected.clock_in_at) : 'no registrada' }}
+                <sup v-if="dayDiff(selected.clock_out_at, selected.clock_in_at) > 0"
+                     class="text-[9px] font-bold text-blue-500">
+                  +{{ dayDiff(selected.clock_out_at, selected.clock_in_at) }}
+                </sup>
+              </span></p>
             </div>
 
             <!-- Nova entrada -->
@@ -309,8 +328,8 @@
                      class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
             </div>
 
-            <!-- Nova sortida -->
-            <div>
+            <!-- Nova sortida (només si ja existeix) -->
+            <div v-if="selected.clock_out_at">
               <label class="block text-xs font-medium text-gray-600 mb-1">Nova hora de sortida <span class="text-gray-400">(opcional)</span></label>
               <input v-model="editForm.clock_out_at" type="datetime-local"
                      class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
@@ -377,12 +396,24 @@
             <div class="bg-gray-50 rounded-xl p-3 text-xs text-gray-600 space-y-1.5">
               <template v-if="adminReviewReq.type === 'edit'">
                 <p v-if="adminReviewReq.requested_data?.clock_in_at">
-                  Entrada: <span class="font-mono line-through text-gray-400">{{ formatTime(adminReviewReq.original_data?.clock_in_at) }}</span>
-                  → <span class="font-mono font-medium text-blue-700">{{ formatTime(adminReviewReq.requested_data?.clock_in_at) }}</span>
+                  Entrada:
+                  <template v-if="isSameTime(adminReviewReq.original_data?.clock_in_at, adminReviewReq.requested_data?.clock_in_at)">
+                    <span class="font-mono">{{ formatTime(adminReviewReq.original_data?.clock_in_at) }}</span>
+                  </template>
+                  <template v-else>
+                    <span class="font-mono line-through text-gray-400">{{ fmtEdit(adminReviewReq.original_data?.clock_in_at, adminReviewReq.requested_data?.clock_in_at) }}</span>
+                    → <span class="font-mono font-medium text-blue-700">{{ fmtEdit(adminReviewReq.requested_data?.clock_in_at, adminReviewReq.original_data?.clock_in_at) }}</span>
+                  </template>
                 </p>
                 <p v-if="adminReviewReq.requested_data?.clock_out_at">
-                  Sortida: <span class="font-mono line-through text-gray-400">{{ formatTime(adminReviewReq.original_data?.clock_out_at) }}</span>
-                  → <span class="font-mono font-medium text-blue-700">{{ formatTime(adminReviewReq.requested_data?.clock_out_at) }}</span>
+                  Sortida:
+                  <template v-if="isSameTime(adminReviewReq.original_data?.clock_out_at, adminReviewReq.requested_data?.clock_out_at)">
+                    <span class="font-mono">{{ formatTime(adminReviewReq.original_data?.clock_out_at) }}</span>
+                  </template>
+                  <template v-else>
+                    <span class="font-mono line-through text-gray-400">{{ fmtEdit(adminReviewReq.original_data?.clock_out_at, adminReviewReq.requested_data?.clock_out_at) }}</span>
+                    → <span class="font-mono font-medium text-blue-700">{{ fmtEdit(adminReviewReq.requested_data?.clock_out_at, adminReviewReq.original_data?.clock_out_at) }}</span>
+                  </template>
                 </p>
               </template>
               <template v-else-if="adminReviewReq.type === 'delete'">
@@ -391,12 +422,24 @@
               </template>
               <template v-else-if="adminReviewReq.type === 'break_edit'">
                 <p v-if="adminReviewReq.requested_data?.break_start_at">
-                  Inici pausa: <span class="font-mono line-through text-gray-400">{{ formatTime(adminReviewReq.original_data?.break_start_at) }}</span>
-                  → <span class="font-mono font-medium text-blue-700">{{ formatTime(adminReviewReq.requested_data?.break_start_at) }}</span>
+                  Inici pausa:
+                  <template v-if="isSameTime(adminReviewReq.original_data?.break_start_at, adminReviewReq.requested_data?.break_start_at)">
+                    <span class="font-mono">{{ formatTime(adminReviewReq.original_data?.break_start_at) }}</span>
+                  </template>
+                  <template v-else>
+                    <span class="font-mono line-through text-gray-400">{{ fmtEdit(adminReviewReq.original_data?.break_start_at, adminReviewReq.requested_data?.break_start_at) }}</span>
+                    → <span class="font-mono font-medium text-blue-700">{{ fmtEdit(adminReviewReq.requested_data?.break_start_at, adminReviewReq.original_data?.break_start_at) }}</span>
+                  </template>
                 </p>
                 <p v-if="adminReviewReq.requested_data?.break_end_at">
-                  Final pausa: <span class="font-mono line-through text-gray-400">{{ formatTime(adminReviewReq.original_data?.break_end_at) }}</span>
-                  → <span class="font-mono font-medium text-blue-700">{{ formatTime(adminReviewReq.requested_data?.break_end_at) }}</span>
+                  Final pausa:
+                  <template v-if="isSameTime(adminReviewReq.original_data?.break_end_at, adminReviewReq.requested_data?.break_end_at)">
+                    <span class="font-mono">{{ formatTime(adminReviewReq.original_data?.break_end_at) }}</span>
+                  </template>
+                  <template v-else>
+                    <span class="font-mono line-through text-gray-400">{{ fmtEdit(adminReviewReq.original_data?.break_end_at, adminReviewReq.requested_data?.break_end_at) }}</span>
+                    → <span class="font-mono font-medium text-blue-700">{{ fmtEdit(adminReviewReq.requested_data?.break_end_at, adminReviewReq.original_data?.break_end_at) }}</span>
+                  </template>
                 </p>
               </template>
               <template v-else-if="adminReviewReq.type === 'break_delete'">
@@ -591,7 +634,13 @@
             </p>
             <div class="bg-gray-50 rounded-xl p-3 text-xs text-gray-500 space-y-1">
               <p>Entrada: <span class="font-mono font-medium text-gray-700">{{ formatTime(selected.clock_in_at) }}</span></p>
-              <p v-if="selected.clock_out_at">Sortida: <span class="font-mono font-medium text-gray-700">{{ formatTime(selected.clock_out_at) }}</span></p>
+              <p v-if="selected.clock_out_at">Sortida: <span class="font-mono font-medium text-gray-700 relative inline-flex items-baseline gap-1">
+                {{ formatClockOut(selected.clock_out_at, selected.clock_in_at) }}
+                <sup v-if="dayDiff(selected.clock_out_at, selected.clock_in_at) > 0"
+                     class="text-[9px] font-bold text-blue-500">
+                  +{{ dayDiff(selected.clock_out_at, selected.clock_in_at) }}
+                </sup>
+              </span></p>
             </div>
             <div>
               <label class="block text-xs font-medium text-gray-600 mb-1">Motiu de l'eliminació <span class="text-red-500">*</span></label>
@@ -957,6 +1006,36 @@ async function submitDeleteRequest() {
 function formatTime(iso) {
   if (!iso) return '—'
   return new Date(iso).toLocaleTimeString('ca-ES', { hour: '2-digit', minute: '2-digit' })
+}
+
+function formatClockOut(outIso, inIso) {
+  if (!outIso) return '—'
+  const out = new Date(outIso)
+  return out.toLocaleTimeString('ca-ES', { hour: '2-digit', minute: '2-digit' })
+}
+
+function isSameTime(iso1, iso2) {
+  if (!iso1 || !iso2) return false
+  return new Date(iso1).getTime() === new Date(iso2).getTime()
+}
+function fmtEdit(iso, peerIso) {
+  if (!iso) return '—'
+  const d = new Date(iso)
+  const time = d.toLocaleTimeString('ca-ES', { hour: '2-digit', minute: '2-digit' })
+  if (!peerIso) return time
+  const p = new Date(peerIso)
+  const sameDay = d.getFullYear() === p.getFullYear() && d.getMonth() === p.getMonth() && d.getDate() === p.getDate()
+  if (sameDay) return time
+  return d.toLocaleDateString('ca-ES', { weekday: 'short', day: 'numeric', month: 'short' }) + ' ' + time
+}
+
+function dayDiff(outIso, inIso) {
+  if (!outIso || !inIso) return 0
+  const out = new Date(outIso)
+  const inn = new Date(inIso)
+  const outDay = new Date(out.getFullYear(), out.getMonth(), out.getDate())
+  const inDay  = new Date(inn.getFullYear(), inn.getMonth(), inn.getDate())
+  return Math.round((outDay - inDay) / 86400000)
 }
 
 function formatDate(d) {

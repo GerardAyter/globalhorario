@@ -86,6 +86,40 @@ class TimeTrackingController extends BaseController
         }
     }
 
+    public function adminClockOut(Request $request, int $id)
+    {
+        try {
+            $this->service->adminClockOut($request->user(), $id, $request);
+            return $this->success(null, 'Torn finalitzat correctament.');
+        } catch (\Exception $e) {
+            return $this->error($e->getMessage(), null, 422);
+        }
+    }
+
+    public function adminEditEntry(Request $request, int $id)
+    {
+        $validated = $request->validate([
+            'clock_in_at'  => 'nullable|string',
+            'clock_out_at' => 'nullable|string',
+        ]);
+        try {
+            $data = $this->service->adminEditEntry($request->user(), $id, $validated, $request);
+            return $this->success($data, 'Fitxatge modificat correctament.');
+        } catch (\Exception $e) {
+            return $this->error($e->getMessage(), null, 422);
+        }
+    }
+
+    public function adminDeleteEntry(Request $request, int $id)
+    {
+        try {
+            $this->service->adminDeleteEntry($request->user(), $id, $request);
+            return $this->success(null, 'Fitxatge eliminat correctament.');
+        } catch (\Exception $e) {
+            return $this->error($e->getMessage(), null, 422);
+        }
+    }
+
     public function companyEntries(Request $request)
     {
         $date = $request->query('date', now()->toDateString());
