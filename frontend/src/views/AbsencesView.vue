@@ -3,12 +3,12 @@
     <!-- ── Capçalera ──────────────────────────────────────────────────────────── -->
     <div class="flex items-center justify-between mb-5">
       <div>
-        <h2 class="text-base font-medium text-gray-900">Calendari</h2>
-        <p class="text-sm text-gray-400 mt-0.5">Vacances, absències i dies personals</p>
+        <h2 class="text-base font-medium text-gray-900">{{ $t('absence.title') }}</h2>
+        <p class="text-sm text-gray-400 mt-0.5">{{ $t('absence.subtitle') }}</p>
       </div>
       <button @click="openModal()"
               class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-xl transition-colors">
-        <IconPlus class="w-4 h-4" />Nova sol·licitud
+        <IconPlus class="w-4 h-4" />{{ $t('absence.new_request') }}
       </button>
     </div>
 
@@ -16,21 +16,21 @@
     <div v-if="balance" class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
       <!-- Vacances disponibles -->
       <div class="bg-white border border-gray-200 rounded-xl p-4">
-        <p class="text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-1">Vacances disponibles</p>
-        <p class="text-2xl font-bold text-blue-600">{{ balance.vacation.available }}<span class="text-sm font-normal text-gray-400 ml-1">dies</span></p>
+        <p class="text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-1">{{ $t('absence.vacation_available') }}</p>
+        <p class="text-2xl font-bold text-blue-600">{{ balance.vacation.available }}<span class="text-sm font-normal text-gray-400 ml-1">{{ $t('common.days_other') }}</span></p>
         <div class="mt-2 space-y-0.5 text-xs text-gray-400">
-          <p>{{ balance.vacation.generated }} generats · {{ balance.vacation.carried }} traspassats</p>
-          <p v-if="balance.vacation.extra > 0" class="text-green-600 font-medium">+{{ balance.vacation.extra }} dies extra</p>
+          <p>{{ balance.vacation.generated }} {{ $t('absence.generated') }} · {{ balance.vacation.carried }} {{ $t('absence.carried') }}</p>
+          <p v-if="balance.vacation.extra > 0" class="text-green-600 font-medium">{{ $t('absence.extra_days', { n: balance.vacation.extra }) }}</p>
         </div>
       </div>
 
       <!-- Vacances gaudides -->
       <div class="bg-white border border-gray-200 rounded-xl p-4">
-        <p class="text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-1">Vacances gaudides</p>
-        <p class="text-2xl font-bold text-gray-700">{{ balance.vacation.taken }}<span class="text-sm font-normal text-gray-400 ml-1">dies</span></p>
+        <p class="text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-1">{{ $t('absence.vacation_taken') }}</p>
+        <p class="text-2xl font-bold text-gray-700">{{ balance.vacation.taken }}<span class="text-sm font-normal text-gray-400 ml-1">{{ $t('common.days_other') }}</span></p>
         <div class="mt-2 text-xs text-gray-400">
-          <p v-if="balance.vacation.pending > 0" class="text-amber-600">{{ balance.vacation.pending }} pendents d'aprovació</p>
-          <p v-else>de {{ balance.vacation.total }} totals</p>
+          <p v-if="balance.vacation.pending > 0" class="text-amber-600">{{ $t('absence.pending_approval', { n: balance.vacation.pending }) }}</p>
+          <p v-else>{{ $t('absence.of_total', { n: balance.vacation.total }) }}</p>
         </div>
         <!-- Barra de progrés -->
         <div class="mt-2 h-1.5 bg-gray-100 rounded-full overflow-hidden">
@@ -41,18 +41,18 @@
 
       <!-- Dies personals disponibles -->
       <div class="bg-white border border-gray-200 rounded-xl p-4">
-        <p class="text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-1">Dies personals disp.</p>
-        <p class="text-2xl font-bold text-purple-600">{{ balance.personal.available }}<span class="text-sm font-normal text-gray-400 ml-1">dies</span></p>
+        <p class="text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-1">{{ $t('absence.personal_available') }}</p>
+        <p class="text-2xl font-bold text-purple-600">{{ balance.personal.available }}<span class="text-sm font-normal text-gray-400 ml-1">{{ $t('common.days_other') }}</span></p>
         <div class="mt-2 text-xs text-gray-400">
-          <p v-if="balance.personal.pending > 0" class="text-amber-600">{{ balance.personal.pending }} pendent</p>
-          <p v-else>de {{ balance.personal.total }} totals</p>
+          <p v-if="balance.personal.pending > 0" class="text-amber-600">{{ $t('absence.pending_only', { n: balance.personal.pending }) }}</p>
+          <p v-else>{{ $t('absence.of_total', { n: balance.personal.total }) }}</p>
         </div>
       </div>
 
       <!-- Dies personals gaudits -->
       <div class="bg-white border border-gray-200 rounded-xl p-4">
-        <p class="text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-1">Dies personals gaudits</p>
-        <p class="text-2xl font-bold text-gray-700">{{ balance.personal.taken }}<span class="text-sm font-normal text-gray-400 ml-1">dies</span></p>
+        <p class="text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-1">{{ $t('absence.personal_taken') }}</p>
+        <p class="text-2xl font-bold text-gray-700">{{ balance.personal.taken }}<span class="text-sm font-normal text-gray-400 ml-1">{{ $t('common.days_other') }}</span></p>
         <div class="mt-2 h-1.5 bg-gray-100 rounded-full overflow-hidden">
           <div class="h-full bg-purple-400 rounded-full transition-all"
                :style="{ width: balance.personal.total > 0 ? `${Math.min(100, (balance.personal.taken / balance.personal.total) * 100)}%` : '0%' }" />
@@ -85,7 +85,7 @@
 
         <!-- Capçalera dies -->
         <div class="grid grid-cols-7 border-b bg-gray-50">
-          <div v-for="d in ['Dl','Dt','Dc','Dj','Dv','Ds','Dg']" :key="d"
+          <div v-for="d in weekdayLabels" :key="d"
                class="py-2 text-center text-[10px] font-medium text-gray-400 uppercase">{{ d }}</div>
         </div>
 
@@ -142,11 +142,11 @@
             <span class="text-xs text-gray-500">{{ type.name }}</span>
           </div>
           <div class="flex items-center gap-3 ml-auto text-xs text-gray-400">
-            <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-sm bg-slate-100 border border-slate-300" />Cap de setmana</span>
-            <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-sm bg-red-100 border border-red-300" />Festiu</span>
-            <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-sm bg-amber-200 border border-amber-400" />Pendent</span>
-            <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-sm bg-blue-200 border border-blue-400" />Aprovat</span>
-            <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-sm bg-gray-200 border border-gray-400" />Denegat</span>
+            <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-sm bg-slate-100 border border-slate-300" />{{ $t('absence.legend_weekend') }}</span>
+            <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-sm bg-red-100 border border-red-300" />{{ $t('absence.legend_holiday') }}</span>
+            <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-sm bg-amber-200 border border-amber-400" />{{ $t('absence.legend_pending') }}</span>
+            <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-sm bg-blue-200 border border-blue-400" />{{ $t('absence.legend_approved') }}</span>
+            <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-sm bg-gray-200 border border-gray-400" />{{ $t('absence.legend_denied') }}</span>
           </div>
         </div>
       </div>
@@ -154,7 +154,7 @@
       <!-- Llista sol·licituds (1/3) -->
       <div class="bg-white border border-gray-200 rounded-xl overflow-hidden flex flex-col">
         <div class="px-4 py-3 border-b">
-          <h3 class="text-sm font-medium text-gray-900">Les meves sol·licituds</h3>
+          <h3 class="text-sm font-medium text-gray-900">{{ $t('absence.my_requests') }}</h3>
         </div>
 
         <div v-if="loading" class="p-4 space-y-3">
@@ -164,8 +164,8 @@
         <div v-else-if="myRequests.length === 0"
              class="flex-1 flex flex-col items-center justify-center py-10 text-center px-4">
           <IconCalendarOff class="w-8 h-8 text-gray-200 mb-2" />
-          <p class="text-sm text-gray-400">Sense sol·licituds</p>
-          <p class="text-xs text-gray-300 mt-1">Crea-ne una amb el botó superior</p>
+          <p class="text-sm text-gray-400">{{ $t('absence.no_requests') }}</p>
+          <p class="text-xs text-gray-300 mt-1">{{ $t('absence.create_from_top') }}</p>
         </div>
 
         <div v-else class="divide-y divide-gray-100 overflow-y-auto flex-1">
@@ -183,7 +183,7 @@
             <p class="text-xs text-gray-500 pl-4">
               {{ formatDate(req.start_date) }}
               <template v-if="req.start_date !== req.end_date"> → {{ formatDate(req.end_date) }}</template>
-              · {{ req.working_days }} {{ req.working_days === 1 ? 'dia' : 'dies' }}
+              · {{ req.working_days }} {{ req.working_days === 1 ? $t('common.days_one') : $t('common.days_other') }}
             </p>
             <p v-if="req.manager_comment" class="text-xs text-gray-400 pl-4 mt-0.5 italic">
               "{{ req.manager_comment }}"
@@ -193,7 +193,7 @@
                     @click="doCancel(req.id)"
                     :disabled="acting"
                     class="mt-1.5 ml-4 text-[10px] text-red-500 hover:underline disabled:opacity-40">
-              Cancel·lar
+              {{ $t('common.cancel') }}
             </button>
           </div>
         </div>
@@ -204,10 +204,10 @@
     <div v-if="isHrPlus" class="mt-4 bg-white border border-gray-200 rounded-xl overflow-hidden">
       <div class="px-5 py-3 border-b flex items-center justify-between">
         <div class="flex items-center gap-3">
-          <h3 class="text-sm font-medium text-gray-900">Sol·licituds de l'empresa</h3>
+          <h3 class="text-sm font-medium text-gray-900">{{ $t('absence.company_requests') }}</h3>
           <span v-if="pendingCount > 0"
                 class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
-            {{ pendingCount }} pendents
+            {{ $t('absence.pending_only', { n: pendingCount }) }}
           </span>
         </div>
         <div class="flex gap-1">
@@ -232,7 +232,7 @@
 
       <div v-else-if="filteredCompanyRequests.length === 0"
            class="py-8 text-center text-sm text-gray-400">
-        Sense sol·licituds {{ companyFilter !== 'all' ? statusLabel(companyFilter).toLowerCase() + 's' : '' }}
+          {{ noCompanyRequestsText }}
       </div>
 
       <div v-else class="divide-y divide-gray-100">
@@ -261,7 +261,7 @@
               <p class="text-xs text-gray-500">
                 {{ req.type?.name }} · {{ formatDate(req.start_date) }}
                 <template v-if="req.start_date !== req.end_date"> → {{ formatDate(req.end_date) }}</template>
-                · <strong>{{ req.working_days }} dies</strong>
+                · <strong>{{ req.working_days }} {{ req.working_days === 1 ? $t('common.days_one') : $t('common.days_other') }}</strong>
               </p>
             </div>
             <p v-if="req.employee_comment" class="text-xs text-gray-400 mt-0.5 italic">"{{ req.employee_comment }}"</p>
@@ -272,11 +272,11 @@
             <template v-if="req.status === 'pending'">
               <button @click="doApprove(req.id)" :disabled="acting"
                       class="text-xs bg-green-50 hover:bg-green-100 text-green-700 border border-green-200 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-40 font-medium">
-                Aprovar
+                {{ $t('common.accept') }}
               </button>
               <button @click="openDenyModal(req)" :disabled="acting"
                       class="text-xs bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-40 font-medium">
-                Denegar
+                {{ $t('common.deny') }}
               </button>
             </template>
             <span v-else class="text-[10px] font-medium px-2 py-0.5 rounded-full" :class="statusBadge(req.status)">
@@ -290,17 +290,17 @@
     <!-- ── Panell gestió de festius (Admin+) ─────────────────────────────────── -->
     <div v-if="isAdmin" class="mt-4 bg-white border border-gray-200 rounded-xl overflow-hidden">
       <div class="px-5 py-3 border-b flex items-center justify-between">
-        <h3 class="text-sm font-medium text-gray-900">Festius de l'empresa</h3>
+        <h3 class="text-sm font-medium text-gray-900">{{ $t('absence.company_holidays') }}</h3>
         <button @click="openHolidayForm"
                 class="flex items-center gap-1.5 text-xs bg-blue-600 hover:bg-blue-700 text-white font-medium px-3 py-1.5 rounded-lg transition-colors">
-          <IconPlus class="w-3.5 h-3.5" />Afegir festiu
+          <IconPlus class="w-3.5 h-3.5" />{{ $t('absence.add_holiday') }}
         </button>
       </div>
 
       <!-- Llista de festius -->
       <div v-if="holidays.length === 0"
            class="py-8 text-center text-sm text-gray-400">
-        Sense festius per a l'any {{ viewYear }}
+        {{ $t('absence.no_holidays_year', { year: viewYear }) }}
       </div>
       <div v-else class="divide-y divide-gray-100">
         <div v-for="h in holidays" :key="h.id"
@@ -309,8 +309,8 @@
           <div class="flex-1 min-w-0">
             <p class="text-sm font-medium text-gray-900">{{ h.name }}</p>
             <p class="text-xs text-gray-400">
-              {{ new Date(h.date).toLocaleDateString('ca-ES', { day: 'numeric', month: 'long' }) }}
-              <template v-if="h.recurring"> · Recurrent</template>
+              {{ new Date(h.date).toLocaleDateString(dateLocale, { day: 'numeric', month: 'long' }) }}
+              <template v-if="h.recurring"> · {{ $t('absence.recurring_annually') }}</template>
               · <span class="capitalize">{{ TYPE_LABELS[h.type] || h.type }}</span>
             </p>
           </div>
@@ -329,7 +329,7 @@
            @click.self="showModal = false">
         <div class="bg-white rounded-2xl shadow-xl w-full max-w-md">
           <div class="px-6 py-4 border-b flex items-center justify-between">
-            <h3 class="font-semibold text-gray-900">Nova sol·licitud</h3>
+            <h3 class="font-semibold text-gray-900">{{ $t('absence.new_request') }}</h3>
             <button @click="showModal = false" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100">
               <IconX class="w-4 h-4 text-gray-500" />
             </button>
@@ -338,7 +338,7 @@
           <form @submit.prevent="doCreate" class="px-6 py-5 space-y-4">
             <!-- Tipus -->
             <div>
-              <label class="block text-xs font-medium text-gray-700 mb-1.5">Tipus d'absència</label>
+              <label class="block text-xs font-medium text-gray-700 mb-1.5">{{ $t('absence.absence_type') }}</label>
               <div class="grid grid-cols-2 gap-2">
                 <button v-for="t in absenceTypes" :key="t.id" type="button"
                         @click="form.absence_type_id = t.id"
@@ -351,20 +351,20 @@
                   <span class="truncate">{{ t.name }}</span>
                 </button>
               </div>
-              <p v-if="absenceTypes.length === 0" class="text-xs text-gray-400 mt-1">
-                L'empresa no té tipus d'absència configurats.
+                <p v-if="absenceTypes.length === 0" class="text-xs text-gray-400 mt-1">
+                {{ $t('absence.type_missing') }}
               </p>
             </div>
 
             <!-- Dates -->
             <div class="grid grid-cols-2 gap-3">
               <div>
-                <label class="block text-xs font-medium text-gray-700 mb-1.5">Inici</label>
+                <label class="block text-xs font-medium text-gray-700 mb-1.5">{{ $t('absence.start') }}</label>
                 <input v-model="form.start_date" type="date" required
                        class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
               </div>
               <div>
-                <label class="block text-xs font-medium text-gray-700 mb-1.5">Fi</label>
+                <label class="block text-xs font-medium text-gray-700 mb-1.5">{{ $t('absence.end') }}</label>
                 <input v-model="form.end_date" type="date" required :min="form.start_date"
                        class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
               </div>
@@ -374,18 +374,18 @@
             <div class="flex gap-4">
               <label class="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
                 <input v-model="form.half_day_start" type="checkbox" class="rounded" />
-                Mig dia inicial
+                {{ $t('absence.half_day_start') }}
               </label>
               <label class="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
                 <input v-model="form.half_day_end" type="checkbox" class="rounded" />
-                Mig dia final
+                {{ $t('absence.half_day_end') }}
               </label>
             </div>
 
             <!-- Resum dies laborables -->
             <div v-if="form.start_date && form.end_date"
                  class="bg-blue-50 rounded-xl px-4 py-3 flex items-center justify-between">
-              <span class="text-sm text-blue-700">Dies laborables sol·licitats</span>
+              <span class="text-sm text-blue-700">{{ $t('absence.requested_working_days') }}</span>
               <span class="font-bold text-blue-800 text-lg">{{ previewWorkingDays }}</span>
             </div>
 
@@ -393,21 +393,21 @@
             <div>
               <label class="block text-xs font-medium mb-1.5"
                      :class="selectedType?.requires_comment ? 'text-gray-900' : 'text-gray-700'">
-                Comentari
+                {{ $t('absence.comment') }}
                 <span v-if="selectedType?.requires_comment" class="text-red-500 ml-0.5">*</span>
-                <span v-else class="text-gray-400 font-normal ml-1">(opcional)</span>
+                <span v-else class="text-gray-400 font-normal ml-1">{{ $t('absence.optional') }}</span>
               </label>
               <textarea v-model="form.employee_comment" rows="2" maxlength="1000"
                         :required="selectedType?.requires_comment"
                         :placeholder="selectedType?.requires_comment
-                          ? 'Descriu el motiu de la sol·licitud...'
-                          : 'Motiu o informació addicional...'"
+                          ? $t('absence.comment_placeholder_required')
+                          : $t('absence.comment_placeholder_optional')"
                         class="w-full border rounded-xl px-3 py-2 text-sm focus:outline-none resize-none transition-colors"
                         :class="selectedType?.requires_comment
                           ? 'border-red-200 focus:ring-2 focus:ring-red-400'
                           : 'border-gray-200 focus:ring-2 focus:ring-blue-500'" />
               <p v-if="selectedType?.requires_comment" class="text-[10px] text-red-500 mt-1">
-                Aquest tipus d'absència requereix un comentari obligatòriament.
+                {{ $t('absence.comment_required') }}
               </p>
             </div>
 
@@ -416,12 +416,12 @@
             <div class="flex gap-3 pt-1">
               <button type="button" @click="showModal = false"
                       class="flex-1 border border-gray-200 text-gray-700 text-sm font-medium py-2.5 rounded-xl hover:bg-gray-50 transition-colors">
-                Cancel·lar
+                {{ $t('common.cancel') }}
               </button>
               <button type="submit" :disabled="acting || !form.absence_type_id"
                       class="flex-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-medium py-2.5 rounded-xl transition-colors">
-                <span v-if="acting">Enviant...</span>
-                <span v-else>Sol·licitar</span>
+                <span v-if="acting">{{ $t('common.sending') }}</span>
+                <span v-else>{{ $t('absence.submit_request') }}</span>
               </button>
             </div>
           </form>
@@ -435,7 +435,7 @@
         <div class="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
           <!-- Capçalera -->
           <div class="px-6 py-4 border-b flex items-center justify-between">
-            <h3 class="text-base font-semibold text-gray-900">Nou festiu</h3>
+            <h3 class="text-base font-semibold text-gray-900">{{ $t('absence.new_holiday') }}</h3>
             <button @click="showHolidayForm = false"
                     class="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 transition-colors">
               <IconX class="w-4 h-4" />
@@ -445,21 +445,21 @@
           <form @submit.prevent="doCreateHoliday" class="px-6 py-5 space-y-4">
             <!-- Nom -->
             <div>
-              <label class="block text-xs font-medium text-gray-700 mb-1">Nom *</label>
-              <input v-model="holidayForm.name" type="text" placeholder="Ej: Nadal, Festa Major..."
+              <label class="block text-xs font-medium text-gray-700 mb-1">{{ $t('absence.holiday_name') }}</label>
+              <input v-model="holidayForm.name" type="text" :placeholder="$t('absence.holiday_placeholder')"
                      class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
             </div>
 
             <!-- Data -->
             <div>
-              <label class="block text-xs font-medium text-gray-700 mb-1">Data *</label>
+              <label class="block text-xs font-medium text-gray-700 mb-1">{{ $t('absence.date') }}</label>
               <input v-model="holidayForm.date" type="date"
                      class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
             </div>
 
             <!-- Tipus -->
             <div>
-              <label class="block text-xs font-medium text-gray-700 mb-2">Tipus</label>
+              <label class="block text-xs font-medium text-gray-700 mb-2">{{ $t('absence.type') }}</label>
               <div class="grid grid-cols-3 gap-2">
                 <button v-for="o in holidayTypeOptions" :key="o.value" type="button"
                         @click="holidayForm.type = o.value; holidayForm.color = o.color"
@@ -479,8 +479,8 @@
               <input v-model="holidayForm.recurring" type="checkbox"
                      class="w-4 h-4 rounded text-blue-600" />
               <div>
-                <p class="text-sm font-medium text-gray-900">Recurrent cada any</p>
-                <p class="text-xs text-gray-400">El festiu es repetirà cada any en la mateixa data</p>
+                <p class="text-sm font-medium text-gray-900">{{ $t('absence.recurring_annually') }}</p>
+                <p class="text-xs text-gray-400">{{ $t('absence.recurring_desc') }}</p>
               </div>
             </label>
 
@@ -490,13 +490,13 @@
             <div class="flex gap-3 pt-1">
               <button type="button" @click="showHolidayForm = false"
                       class="flex-1 border border-gray-200 text-gray-700 text-sm font-medium py-2.5 rounded-xl hover:bg-gray-50 transition-colors">
-                Cancel·lar
+                {{ $t('common.cancel') }}
               </button>
               <button type="submit" :disabled="holidayActing"
                       class="flex-1 text-white text-sm font-medium py-2.5 rounded-xl transition-colors disabled:opacity-50"
                       :style="{ backgroundColor: holidayForm.color || '#EF4444' }">
-                <span v-if="holidayActing">Desant...</span>
-                <span v-else>Desar festiu</span>
+                <span v-if="holidayActing">{{ $t('common.saving') }}</span>
+                <span v-else>{{ $t('absence.save_holiday') }}</span>
               </button>
             </div>
           </form>
@@ -508,12 +508,12 @@
            class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm"
            @click.self="denyTarget = null">
         <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
-          <h3 class="font-semibold text-gray-900 mb-1">Denegar sol·licitud</h3>
+          <h3 class="font-semibold text-gray-900 mb-1">{{ $t('absence.deny_request') }}</h3>
           <p class="text-sm text-gray-500 mb-4">
             {{ denyTarget.employee?.nom }} {{ denyTarget.employee?.cognoms }} —
             {{ denyTarget.type?.name }} ({{ denyTarget.working_days }} dies)
           </p>
-          <textarea v-model="denyComment" rows="3" placeholder="Motiu de la denegació *"
+          <textarea v-model="denyComment" rows="3" :placeholder="$t('absence.denial_reason')"
                     class="w-full border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 resize-none mb-1"
                     :class="denyError ? 'border-red-400 focus:ring-red-400' : 'border-gray-200 focus:ring-red-400'" />
           <p v-if="denyError" class="text-xs text-red-600 mb-3">{{ denyError }}</p>
@@ -521,11 +521,11 @@
           <div class="flex gap-3">
             <button @click="denyTarget = null"
                     class="flex-1 border border-gray-200 text-gray-700 text-sm font-medium py-2 rounded-xl hover:bg-gray-50">
-              Cancel·lar
+              {{ $t('common.cancel') }}
             </button>
             <button @click="doDeny" :disabled="acting"
                     class="flex-1 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-sm font-medium py-2 rounded-xl">
-              Denegar
+              {{ $t('common.deny') }}
             </button>
           </div>
         </div>
@@ -536,6 +536,7 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 import {
   IconPlus, IconChevronLeft, IconChevronRight,
@@ -547,6 +548,7 @@ import { useHolidays }  from '../composables/useHolidays'
 
 const route = useRoute()
 const auth  = useAuthStore()
+const { t, locale } = useI18n()
 const ROLE_HIERARCHY = { user: 0, hr: 1, admin: 2, superadmin: 3, founder: 4 }
 const isHrPlus = computed(() => (ROLE_HIERARCHY[auth.user?.role] ?? -1) >= ROLE_HIERARCHY.hr)
 
@@ -569,9 +571,19 @@ const {
 const viewYear  = ref(new Date().getFullYear())
 const viewMonth = ref(new Date().getMonth()) // 0-indexed
 
+const dateLocale = computed(() => ({ ca: 'ca-ES', es: 'es-ES', en: 'en-GB' }[locale.value] || 'ca-ES'))
+
+const weekdayLabels = computed(() => {
+  const formatter = new Intl.DateTimeFormat(dateLocale.value, { weekday: 'short' })
+  return Array.from({ length: 7 }, (_, index) => {
+    const label = formatter.format(new Date(2024, 0, 1 + index))
+    return label.charAt(0).toUpperCase() + label.slice(1)
+  })
+})
+
 const monthLabel = computed(() =>
   new Date(viewYear.value, viewMonth.value, 1)
-    .toLocaleDateString('ca-ES', { month: 'long', year: 'numeric' })
+    .toLocaleDateString(dateLocale.value, { month: 'long', year: 'numeric' })
 )
 
 function prevMonth() {
@@ -645,7 +657,7 @@ const calendarCells = computed(() => {
     if (req.status === 'cancelled') continue
     const start  = localMidnight(req.start_date)
     const end    = localMidnight(req.end_date)
-    const label  = req.type?.name || 'Absència'
+    const label  = req.type?.name || t('absence.default_event_label')
     const isOwn  = req.user_id === myId
     const firstName = req.employee?.nom ?? null
     for (const cell of cells) {
@@ -685,12 +697,12 @@ function eventClass(ev) {
 const companyFilter  = ref('pending')
 const companyLoading = ref(false)
 
-const statusFilters = [
-  { value: 'pending',  label: 'Pendents' },
-  { value: 'approved', label: 'Aprovades' },
-  { value: 'denied',   label: 'Denegades' },
-  { value: 'all',      label: 'Totes' },
-]
+const statusFilters = computed(() => [
+  { value: 'pending',  label: t('common.pending') },
+  { value: 'approved', label: t('common.approved') },
+  { value: 'denied',   label: t('common.denied') },
+  { value: 'all',      label: t('common.all') },
+])
 
 const filteredCompanyRequests = computed(() =>
   companyFilter.value === 'all'
@@ -701,6 +713,11 @@ const filteredCompanyRequests = computed(() =>
 const pendingCount = computed(() =>
   companyRequests.value.filter(r => r.status === 'pending').length
 )
+
+const noCompanyRequestsText = computed(() => {
+  if (companyFilter.value === 'all') return t('absence.no_requests')
+  return `${t('absence.no_requests')} ${statusLabel(companyFilter.value).toLowerCase()}`
+})
 
 // ── Modal nova sol·licitud ────────────────────────────────────────────────────
 const showModal = ref(false)
@@ -737,7 +754,7 @@ const previewWorkingDays = computed(() => {
 
 async function doCreate() {
   if (selectedType.value?.requires_comment && !form.value.employee_comment?.trim()) {
-    error.value = 'El comentari és obligatori per a aquest tipus d\'absència.'
+    error.value = t('absence.comment_required')
     return
   }
   error.value = ''
@@ -749,7 +766,7 @@ async function doCreate() {
 }
 
 async function doCancel(id) {
-  if (!confirm('Cancel·lar aquesta sol·licitud?')) return
+  if (!confirm(t('absence.request_cancel_confirm'))) return
   await cancelRequest(id)
 }
 
@@ -767,7 +784,7 @@ async function doApprove(id) {
 
 async function doDeny() {
   if (!denyComment.value.trim()) {
-    denyError.value = 'El comentari és obligatori per denegar una sol·licitud.'
+    denyError.value = t('absence.denial_required')
     return
   }
   denyError.value = ''
@@ -783,7 +800,7 @@ async function handleDeepLink() {
   if (!rid) return
   highlightedRequestId.value = rid
   if (isHrPlus.value) {
-    companyFilter.value = 'all' // mostra tots els estats
+    companyFilter.value = 'all'
     await fetchCompanyRequests()
   }
   // Scroll fins a la fila
@@ -801,11 +818,16 @@ async function fetchCompanyRequests() {
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function formatDate(d) {
   if (!d) return '—'
-  return new Date(d).toLocaleDateString('ca-ES', { day: 'numeric', month: 'short', year: 'numeric' })
+  return new Date(d).toLocaleDateString(dateLocale.value, { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
 function statusLabel(s) {
-  return { pending: 'Pendent', approved: 'Aprovat', denied: 'Denegat', cancelled: 'Cancel·lat' }[s] || s
+  return {
+    pending: t('common.pending'),
+    approved: t('common.approved'),
+    denied: t('common.denied'),
+    cancelled: t('common.cancelled'),
+  }[s] || s
 }
 
 function statusBadge(s) {
@@ -829,11 +851,11 @@ const showHolidayForm = ref(false)
 const holidayForm     = ref({ name: '', date: '', type: 'national', color: '', recurring: false })
 const holidayError    = ref('')
 
-const holidayTypeOptions = [
-  { value: 'national', label: 'Nacional', color: '#EF4444' },
-  { value: 'local',    label: 'Local',    color: '#F97316' },
-  { value: 'company',  label: 'Empresa',  color: '#8B5CF6' },
-]
+const holidayTypeOptions = computed(() => [
+  { value: 'national', label: t('absence.holiday_national'), color: '#EF4444' },
+  { value: 'local',    label: t('absence.holiday_local'), color: '#F97316' },
+  { value: 'company',  label: t('absence.holiday_company'), color: '#8B5CF6' },
+])
 
 function openHolidayForm() {
   holidayForm.value  = { name: '', date: '', type: 'national', color: '', recurring: false }
@@ -843,7 +865,7 @@ function openHolidayForm() {
 
 async function doCreateHoliday() {
   if (!holidayForm.value.name.trim() || !holidayForm.value.date) {
-    holidayError.value = 'El nom i la data són obligatoris.'
+    holidayError.value = t('absence.holiday_required')
     return
   }
   const color = holidayForm.value.color || defaultColor(holidayForm.value.type)
@@ -856,7 +878,7 @@ async function doCreateHoliday() {
 }
 
 async function doRemoveHoliday(id) {
-  if (!confirm('Eliminar aquest festiu?')) return
+  if (!confirm(t('absence.holiday_remove_confirm'))) return
   await removeHoliday(id)
 }
 

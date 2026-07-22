@@ -31,17 +31,17 @@
           <div v-if="notifOpen"
                class="absolute right-0 top-full mt-2 w-80 bg-white border border-gray-200 rounded-xl shadow-xl z-30 overflow-hidden">
             <div class="px-4 py-3 border-b flex items-center justify-between">
-              <h4 class="text-sm font-semibold text-gray-900">Notificacions</h4>
+              <h4 class="text-sm font-semibold text-gray-900">{{ $t('notifications.title') }}</h4>
               <button v-if="unreadCount > 0" @click="markAllRead"
                       class="text-xs text-blue-600 hover:underline">
-                Marcar totes com a llegides
+                {{ $t('notifications.mark_all_read') }}
               </button>
             </div>
 
             <div class="overflow-y-auto max-h-80">
               <div v-if="notifications.length === 0"
                    class="py-8 text-center text-sm text-gray-400">
-                Sense notificacions
+                {{ $t('notifications.empty') }}
               </div>
               <div v-for="n in notifications" :key="n.id"
                    @click="handleNotifClick(n)"
@@ -100,13 +100,13 @@
               <button @click="openEditProfile"
                       class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors text-left">
                 <IconUserEdit class="w-4 h-4 text-gray-400" />
-                Editar perfil
+                {{ $t('profile.edit') }}
               </button>
               <div class="border-t my-1" />
               <button @click="handleLogout"
                       class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors text-left">
                 <IconLogout class="w-4 h-4" />
-                Tancar sessió
+                {{ $t('auth.logout') }}
               </button>
             </div>
           </div>
@@ -119,7 +119,7 @@
       <aside class="w-48 bg-gray-50 border-r h-[calc(100vh-3rem)] sticky top-12 overflow-y-auto">
         <div class="px-2 pb-4">
           <template v-if="hasCompany && sidebar.horari.length">
-            <div class="text-[10px] text-gray-400 font-medium tracking-wider px-3 mt-4 mb-1">HORARI</div>
+            <div class="text-[10px] text-gray-400 font-medium tracking-wider px-3 mt-4 mb-1">{{ $t('sidebar.schedule_section') }}</div>
             <div v-for="item in sidebar.horari" :key="item.name"
                  @click="go(item)"
                  :class="sidebarActive(item)
@@ -132,7 +132,7 @@
           </template>
 
           <template v-if="hasCompany && sidebar.personal.length">
-            <div class="text-[10px] text-gray-400 font-medium tracking-wider px-3 mt-4 mb-1">PERSONAL</div>
+            <div class="text-[10px] text-gray-400 font-medium tracking-wider px-3 mt-4 mb-1">{{ $t('sidebar.personal_section') }}</div>
             <div v-for="item in sidebar.personal" :key="item.name"
                  @click="go(item)"
                  :class="sidebarActive(item)
@@ -145,7 +145,7 @@
           </template>
 
           <template v-if="sidebar.gestio.length">
-            <div class="text-[10px] text-gray-400 font-medium tracking-wider px-3 mt-4 mb-1">GESTIÓ</div>
+            <div class="text-[10px] text-gray-400 font-medium tracking-wider px-3 mt-4 mb-1">{{ $t('sidebar.management_section') }}</div>
             <div v-for="item in sidebar.gestio" :key="item.name"
                  @click="go(item)"
                  :class="sidebarActive(item)
@@ -158,7 +158,7 @@
           </template>
 
           <template v-if="isSuperadmin">
-            <div class="text-[10px] text-gray-400 font-medium tracking-wider px-3 mt-4 mb-1">DISTRIBUCIÓ</div>
+            <div class="text-[10px] text-gray-400 font-medium tracking-wider px-3 mt-4 mb-1">{{ $t('sidebar.distribution_section') }}</div>
             <div v-for="item in sidebar.distribucio" :key="item.name"
                  @click="go(item)"
                  :class="sidebarActive(item)
@@ -171,7 +171,7 @@
           </template>
 
           <template v-if="isFounder">
-            <div class="text-[10px] text-gray-400 font-medium tracking-wider px-3 mt-4 mb-1">SISTEMA</div>
+            <div class="text-[10px] text-gray-400 font-medium tracking-wider px-3 mt-4 mb-1">{{ $t('sidebar.system_section') }}</div>
             <div v-for="item in sidebar.sistema" :key="item.name"
                  @click="go(item)"
                  :class="sidebarActive(item)
@@ -196,7 +196,7 @@
       <div v-if="editProfileOpen" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" @click.self="editProfileOpen = false">
         <div class="bg-white rounded-xl shadow-xl w-full max-w-md">
           <div class="flex items-center justify-between px-5 py-4 border-b">
-            <h3 class="font-medium text-gray-900">Editar perfil</h3>
+            <h3 class="font-medium text-gray-900">{{ $t('profile.title') }}</h3>
             <button @click="editProfileOpen = false" class="text-gray-400 hover:text-gray-600">
               <IconX class="w-5 h-5" />
             </button>
@@ -205,7 +205,7 @@
           <form @submit.prevent="submitProfile" class="px-5 py-4 space-y-4">
             <!-- Nom -->
             <div>
-              <label class="block text-xs font-medium text-gray-600 mb-1">Nom complet <span class="text-red-500">*</span></label>
+              <label class="block text-xs font-medium text-gray-600 mb-1">{{ $t('profile.full_name') }} <span class="text-red-500">*</span></label>
               <input v-model="profileForm.name" type="text"
                      class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                      :class="profileErrors.name ? 'border-red-400' : 'border-gray-200'" />
@@ -214,11 +214,22 @@
 
             <!-- Email -->
             <div>
-              <label class="block text-xs font-medium text-gray-600 mb-1">Correu electrònic <span class="text-red-500">*</span></label>
+              <label class="block text-xs font-medium text-gray-600 mb-1">{{ $t('auth.email') }} <span class="text-red-500">*</span></label>
               <input v-model="profileForm.email" type="email"
                      class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                      :class="profileErrors.email ? 'border-red-400' : 'border-gray-200'" />
               <p v-if="profileErrors.email" class="text-xs text-red-600 mt-1">{{ profileErrors.email[0] }}</p>
+            </div>
+
+            <!-- Idioma -->
+            <div>
+              <label class="block text-xs font-medium text-gray-600 mb-1">{{ $t('profile.language') }}</label>
+              <select v-model="profileForm.locale"
+                      class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="ca">Català</option>
+                <option value="es">Castellano</option>
+                <option value="en">English</option>
+              </select>
             </div>
 
             <!-- Canvi de contrasenya -->
@@ -226,26 +237,26 @@
               <button type="button" @click="showPasswordFields = !showPasswordFields"
                       class="text-xs text-blue-600 hover:underline flex items-center gap-1">
                 <IconChevronDown class="w-3 h-3 transition-transform" :class="showPasswordFields ? 'rotate-180' : ''" />
-                {{ showPasswordFields ? 'Amagar canvi de contrasenya' : 'Canviar contrasenya' }}
+                {{ showPasswordFields ? $t('auth.hide_password') : $t('auth.change_password') }}
               </button>
 
               <div v-if="showPasswordFields" class="mt-3 space-y-3">
                 <div>
-                  <label class="block text-xs font-medium text-gray-600 mb-1">Contrasenya actual</label>
+                  <label class="block text-xs font-medium text-gray-600 mb-1">{{ $t('auth.current_password') }}</label>
                   <input v-model="profileForm.current_password" type="password"
                          class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                          :class="profileErrors.current_password ? 'border-red-400' : 'border-gray-200'" />
                   <p v-if="profileErrors.current_password" class="text-xs text-red-600 mt-1">{{ profileErrors.current_password[0] }}</p>
                 </div>
                 <div>
-                  <label class="block text-xs font-medium text-gray-600 mb-1">Nova contrasenya</label>
+                  <label class="block text-xs font-medium text-gray-600 mb-1">{{ $t('auth.new_password') }}</label>
                   <input v-model="profileForm.password" type="password"
                          class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                          :class="profileErrors.password ? 'border-red-400' : 'border-gray-200'" />
                   <p v-if="profileErrors.password" class="text-xs text-red-600 mt-1">{{ profileErrors.password[0] }}</p>
                 </div>
                 <div>
-                  <label class="block text-xs font-medium text-gray-600 mb-1">Confirmar nova contrasenya</label>
+                  <label class="block text-xs font-medium text-gray-600 mb-1">{{ $t('auth.confirm_password') }}</label>
                   <input v-model="profileForm.password_confirmation" type="password"
                          class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
                 </div>
@@ -257,13 +268,13 @@
 
             <!-- Missatge d'èxit -->
             <div v-if="profileSuccess" class="bg-green-50 border border-green-200 text-green-700 text-xs rounded-lg p-3">
-              Perfil actualitzat correctament.
+              {{ $t('profile.updated') }}
             </div>
 
             <div class="flex items-center justify-end gap-2 pt-1">
               <button type="button" @click="editProfileOpen = false"
                       class="px-4 py-2 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50">
-                Cancel·lar
+                {{ $t('common.cancel') }}
               </button>
               <button type="submit" :disabled="profileSaving"
                       class="px-4 py-2 text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white rounded-lg disabled:opacity-60 flex items-center gap-2 transition-colors">
@@ -271,7 +282,7 @@
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
                   <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
                 </svg>
-                {{ profileSaving ? 'Desant...' : 'Desar canvis' }}
+                {{ profileSaving ? $t('common.saving') : $t('common.save') }}
               </button>
             </div>
           </form>
@@ -284,6 +295,7 @@
 <script setup>
 import { useRouter, useRoute } from 'vue-router'
 import { computed, ref, reactive, onMounted, onUnmounted, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '../stores/auth'
 import {
   IconClock, IconLayoutDashboard, IconArrowsExchange,
@@ -298,6 +310,7 @@ import api from '../services/api'
 const router = useRouter()
 const route  = useRoute()
 const auth   = useAuthStore()
+const { t }  = useI18n()
 
 const initials      = computed(() => auth.initials)
 const isFounder     = computed(() => auth.user?.role === 'founder')
@@ -326,8 +339,7 @@ function handleLogout() {
 }
 
 function roleLabel(role) {
-  const map = { founder: 'Founder', superadmin: 'Superadmin', admin: 'Administrador', hr: 'Recursos Humans', user: 'Usuari' }
-  return map[role] || role
+  return role ? t('roles.' + role) : ''
 }
 
 function roleBadgeClass(role) {
@@ -352,6 +364,7 @@ const showPasswordFields = ref(false)
 const profileForm = reactive({
   name:                  '',
   email:                 '',
+  locale:                'ca',
   current_password:      '',
   password:              '',
   password_confirmation: '',
@@ -361,6 +374,7 @@ function openEditProfile() {
   userMenuOpen.value       = false
   profileForm.name         = auth.user?.name || ''
   profileForm.email        = auth.user?.email || ''
+  profileForm.locale       = auth.user?.locale || 'ca'
   profileForm.current_password      = ''
   profileForm.password              = ''
   profileForm.password_confirmation = ''
@@ -377,7 +391,7 @@ async function submitProfile() {
   profileSuccess.value = false
   profileSaving.value  = true
 
-  const payload = { name: profileForm.name, email: profileForm.email }
+  const payload = { name: profileForm.name, email: profileForm.email, locale: profileForm.locale }
   if (showPasswordFields.value && profileForm.password) {
     payload.current_password      = profileForm.current_password
     payload.password              = profileForm.password
@@ -397,7 +411,7 @@ async function submitProfile() {
       profileErrors.value = e.response.data.errors || {}
       profileError.value  = e.response.data.message || ''
     } else {
-      profileError.value = e?.response?.data?.message || 'Error en desar els canvis.'
+      profileError.value = e?.response?.data?.message || t('common.error_saving')
     }
   } finally {
     profileSaving.value = false
@@ -413,12 +427,12 @@ function canAccess(minRole) {
   return userLevel >= minLevel
 }
 
-const topNavAll = [
-  { name: 'dashboard', label: 'Dashboard', path: '/dashboard' },
-  { name: 'employees', label: 'Empleats',  path: '/employees', minRole: 'hr' },
-  { name: 'documents',   label: 'Documents',  path: '/documents'   },
-]
-const topNav = computed(() => topNavAll.filter(i => !i.minRole || canAccess(i.minRole)))
+const topNavAll = computed(() => [
+  { name: 'dashboard', label: t('nav.dashboard'),  path: '/dashboard' },
+  { name: 'employees', label: t('nav.employees'),  path: '/employees', minRole: 'hr' },
+  { name: 'documents', label: t('nav.documents'),  path: '/documents' },
+])
+const topNav = computed(() => topNavAll.value.filter(i => !i.minRole || canAccess(i.minRole)))
 
 const pendingRequestsCount = ref(0)
 let pendingCountTimer = null
@@ -435,25 +449,25 @@ const sidebar = computed(() => {
   const editReqBadge = pendingRequestsCount.value > 0 ? pendingRequestsCount.value : null
   return {
     horari: [
-      { name: 'control',  label: 'Control horari', icon: IconClock,           path: '/time-entries' },
-      { name: 'dash',     label: 'Dashboard',       icon: IconLayoutDashboard, path: '/dashboard' },
-      { name: 'shifts',   label: 'Torns',           icon: IconArrowsExchange,  path: '/shifts',                   minRole: 'admin' },
-      { name: 'all-entries', label: 'Fitxatges',       icon: IconTable,          path: '/admin/time-entries',       minRole: 'hr' },
-      { name: 'edit-req',    label: 'Sol·licituds',   icon: IconClipboardList,  path: '/time-entry-edit-requests', minRole: 'hr', badge: editReqBadge },
+      { name: 'control',    label: t('sidebar.time_tracking'), icon: IconClock,           path: '/time-entries' },
+      { name: 'dash',       label: t('sidebar.dashboard'),     icon: IconLayoutDashboard, path: '/dashboard' },
+      { name: 'shifts',     label: t('sidebar.shifts'),        icon: IconArrowsExchange,  path: '/shifts',                   minRole: 'admin' },
+      { name: 'all-entries', label: t('sidebar.entries'),      icon: IconTable,           path: '/admin/time-entries',       minRole: 'hr' },
+      { name: 'edit-req',   label: t('sidebar.requests'),      icon: IconClipboardList,   path: '/time-entry-edit-requests', minRole: 'hr', badge: editReqBadge },
     ].filter(i => !i.minRole || canAccess(i.minRole)),
     personal: [
-      { name: 'employees', label: 'Empleats',  icon: IconUsers,    path: '/employees', minRole: 'hr'    },
-      { name: 'absences',  label: 'Calendari', icon: IconCalendar, path: '/absences'                    },
-      { name: 'payrolls',  label: 'Nòmines',   icon: IconReceipt2, path: '/payrolls',  minRole: 'admin' },
+      { name: 'employees', label: t('sidebar.employees'), icon: IconUsers,    path: '/employees', minRole: 'hr'    },
+      { name: 'absences',  label: t('sidebar.calendar'),  icon: IconCalendar, path: '/absences'                   },
+      { name: 'payrolls',  label: t('sidebar.payrolls'),  icon: IconReceipt2, path: '/payrolls',  minRole: 'admin' },
     ].filter(i => !i.minRole || canAccess(i.minRole)),
     gestio: [
-      { name: 'departments', label: 'Departaments', icon: IconSitemap,         path: '/departments', minRole: 'admin' },
-      { name: 'convenis',    label: 'Convenis',      icon: IconFileDescription, path: '/convenis',    minRole: 'admin' },
-      { name: 'documents',   label: 'Documents',     icon: IconReportAnalytics, path: '/documents'                    },
-      { name: 'settings',    label: 'Configuració',  icon: IconSettings,        path: '/settings',    minRole: 'admin' },
+      { name: 'departments', label: t('sidebar.departments'), icon: IconSitemap,         path: '/departments', minRole: 'admin' },
+      { name: 'convenis',    label: t('sidebar.convenis'),    icon: IconFileDescription, path: '/convenis',    minRole: 'admin' },
+      { name: 'documents',   label: t('sidebar.documents'),  icon: IconReportAnalytics, path: '/documents'                   },
+      { name: 'settings',    label: t('sidebar.settings'),   icon: IconSettings,        path: '/settings',    minRole: 'admin' },
     ].filter(i => !i.minRole || canAccess(i.minRole)),
-    distribucio: [{ name: 'companies', label: 'Empreses',      icon: IconBuildingSkyscraper, path: '/companies' }],
-    sistema:     [{ name: 'tenants',   label: 'Distribuidors', icon: IconBuilding,           path: '/tenants'   }],
+    distribucio: [{ name: 'companies', label: t('sidebar.companies'),    icon: IconBuildingSkyscraper, path: '/companies' }],
+    sistema:     [{ name: 'tenants',   label: t('sidebar.distributors'), icon: IconBuilding,           path: '/tenants'   }],
   }
 })
 

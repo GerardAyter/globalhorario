@@ -2,17 +2,17 @@
   <div class="container-center">
     <div class="w-full max-w-md card">
       <div class="mb-4">
-        <h2 class="text-lg font-medium">Iniciar sessió</h2>
-        <div class="small-muted">Accedeix al teu espai de treball</div>
+        <h2 class="text-lg font-medium">{{ $t('auth.login') }}</h2>
+        <div class="small-muted">{{ $t('auth.subtitle') }}</div>
       </div>
 
       <form @submit.prevent="onSubmit" class="space-y-4">
         <div>
-          <label class="form-label">Email</label>
+          <label class="form-label">{{ $t('auth.email') }}</label>
           <input v-model="email" type="email" required class="input" />
         </div>
         <div>
-          <label class="form-label">Contrasenya</label>
+          <label class="form-label">{{ $t('auth.password') }}</label>
           <input v-model="password" type="password" required class="input" />
         </div>
 
@@ -20,8 +20,8 @@
 
         <div class="flex items-center justify-between">
           <button :disabled="loading" type="submit" class="btn btn-primary">
-            <span v-if="loading">Carregant…</span>
-            <span v-else>Entrar</span>
+            <span v-if="loading">{{ $t('common.loading') }}</span>
+            <span v-else>{{ $t('auth.login') }}</span>
           </button>
           <a href="#" class="small-muted">He oblidat la contrasenya</a>
         </div>

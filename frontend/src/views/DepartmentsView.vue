@@ -2,11 +2,11 @@
   <div>
     <div class="flex items-center justify-between mb-5">
       <div>
-        <h2 class="text-base font-medium text-gray-900">Departaments</h2>
-        <p class="text-sm text-gray-400 mt-0.5">{{ pagination.total }} departaments registrats</p>
+        <h2 class="text-base font-medium text-gray-900">{{ $t('departments.title') }}</h2>
+        <p class="text-sm text-gray-400 mt-0.5">{{ $t('departments.count', { n: pagination.total }) }}</p>
       </div>
       <button @click="openCreate" class="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-3 py-1.5 rounded-lg transition-colors">
-        <IconPlus class="w-4 h-4" />Nou departament
+        <IconPlus class="w-4 h-4" />{{ $t('departments.new') }}
       </button>
     </div>
 
@@ -30,14 +30,14 @@
       <div v-else-if="error" class="flex flex-col items-center justify-center py-16 text-center">
         <IconAlertTriangle class="w-8 h-8 text-red-400 mb-2" />
         <p class="text-sm text-red-600">{{ error }}</p>
-        <button @click="load()" class="mt-3 text-xs text-blue-600 hover:underline">Tornar a intentar</button>
+        <button @click="load()" class="mt-3 text-xs text-blue-600 hover:underline">{{ $t('common.retry') }}</button>
       </div>
 
       <!-- Buit -->
       <div v-else-if="departments.length === 0" class="flex flex-col items-center justify-center py-16 text-center">
         <IconSitemap class="w-10 h-10 text-gray-300 mb-3" />
-        <p class="text-sm text-gray-500">Encara no hi ha departaments</p>
-        <button @click="openCreate" class="mt-3 text-sm text-blue-600 hover:underline">Crea el primer departament</button>
+        <p class="text-sm text-gray-500">{{ $t('departments.empty') }}</p>
+        <button @click="openCreate" class="mt-3 text-sm text-blue-600 hover:underline">{{ $t('departments.create_first') }}</button>
       </div>
 
       <!-- Llista -->
@@ -59,10 +59,10 @@
 
           <!-- Botons -->
           <div class="flex items-center gap-1 flex-shrink-0">
-            <button @click="openEdit(d)" class="w-7 h-7 flex items-center justify-center rounded text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors" title="Editar">
+            <button @click="openEdit(d)" class="w-7 h-7 flex items-center justify-center rounded text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors" :title="$t('common.edit')">
               <IconEdit class="w-4 h-4" />
             </button>
-            <button @click="askDelete(d)" class="w-7 h-7 flex items-center justify-center rounded text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors" title="Eliminar">
+            <button @click="askDelete(d)" class="w-7 h-7 flex items-center justify-center rounded text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors" :title="$t('common.delete')">
               <IconTrash class="w-4 h-4" />
             </button>
           </div>
@@ -71,12 +71,12 @@
 
       <!-- Paginació -->
       <div v-if="pagination.last_page > 1" class="flex items-center justify-between px-5 py-3 border-t bg-gray-50">
-        <p class="text-xs text-gray-400">Pàgina {{ pagination.current_page }} de {{ pagination.last_page }}</p>
+        <p class="text-xs text-gray-400">{{ $t('common.page_of', { current: pagination.current_page, total: pagination.last_page }) }}</p>
         <div class="flex gap-1">
           <button @click="load(pagination.current_page - 1)" :disabled="pagination.current_page === 1"
-                  class="px-2.5 py-1 text-xs rounded border border-gray-200 disabled:opacity-40 hover:bg-white transition-colors">Anterior</button>
+            class="px-2.5 py-1 text-xs rounded border border-gray-200 disabled:opacity-40 hover:bg-white transition-colors">{{ $t('common.previous') }}</button>
           <button @click="load(pagination.current_page + 1)" :disabled="pagination.current_page === pagination.last_page"
-                  class="px-2.5 py-1 text-xs rounded border border-gray-200 disabled:opacity-40 hover:bg-white transition-colors">Següent</button>
+            class="px-2.5 py-1 text-xs rounded border border-gray-200 disabled:opacity-40 hover:bg-white transition-colors">{{ $t('common.next') }}</button>
         </div>
       </div>
     </div>
@@ -86,22 +86,22 @@
       <div v-if="modal.open" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" @click.self="closeModal">
         <div class="bg-white rounded-xl shadow-xl w-full max-w-md">
           <div class="flex items-center justify-between px-6 py-4 border-b">
-            <h3 class="font-medium text-gray-900">{{ modal.isEdit ? 'Editar departament' : 'Nou departament' }}</h3>
+            <h3 class="font-medium text-gray-900">{{ modal.isEdit ? $t('departments.edit_title') : $t('departments.new_title') }}</h3>
             <button @click="closeModal" class="text-gray-400 hover:text-gray-600"><IconX class="w-5 h-5" /></button>
           </div>
 
           <form @submit.prevent="submitModal" class="px-6 py-5 space-y-4">
             <div>
-              <label class="block text-xs font-medium text-gray-600 mb-1">Nom <span class="text-red-500">*</span></label>
-              <input v-model="form.name" type="text" placeholder="Nom del departament" autofocus
+              <label class="block text-xs font-medium text-gray-600 mb-1">{{ $t('departments.name_label') }}</label>
+              <input v-model="form.name" type="text" :placeholder="$t('departments.name_placeholder')" autofocus
                      class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                      :class="formErrors.name ? 'border-red-400' : 'border-gray-200'" />
               <p v-if="formErrors.name" class="text-xs text-red-600 mt-1">{{ formErrors.name[0] }}</p>
             </div>
 
             <div>
-              <label class="block text-xs font-medium text-gray-600 mb-1">Ubicació</label>
-              <input v-model="form.location" type="text" placeholder="Planta, edifici, sala..."
+              <label class="block text-xs font-medium text-gray-600 mb-1">{{ $t('departments.location_label') }}</label>
+              <input v-model="form.location" type="text" :placeholder="$t('departments.location_placeholder')"
                      class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
             </div>
 
@@ -109,7 +109,7 @@
 
             <div class="flex items-center justify-end gap-2 pt-1 border-t">
               <button type="button" @click="closeModal" class="px-4 py-2 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                Cancel·lar
+                {{ $t('common.cancel') }}
               </button>
               <button type="submit" :disabled="saving"
                       class="px-4 py-2 text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white rounded-lg disabled:opacity-60 flex items-center gap-2 transition-colors">
@@ -117,7 +117,7 @@
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
                   <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
                 </svg>
-                {{ saving ? 'Desant...' : (modal.isEdit ? 'Desar canvis' : 'Crear departament') }}
+                {{ saving ? $t('common.saving') : (modal.isEdit ? $t('common.save') : $t('departments.create_btn')) }}
               </button>
             </div>
           </form>
@@ -134,17 +134,17 @@
               <IconAlertTriangle class="w-5 h-5 text-red-600" />
             </div>
             <div>
-              <p class="font-medium text-gray-900">Eliminar departament</p>
+              <p class="font-medium text-gray-900">{{ $t('departments.delete_title') }}</p>
               <p class="text-sm text-gray-500 mt-1">
-                Estàs a punt d'eliminar <strong class="text-gray-800">{{ deleteTarget.name }}</strong>.
-                Els empleats assignats quedaran sense departament.
+                {{ $t('departments.delete_desc', { name: deleteTarget.name }) }}
+                {{ $t('departments.delete_warning') }}
               </p>
             </div>
           </div>
           <div class="flex gap-2 justify-end">
-            <button @click="deleteTarget = null" class="px-4 py-2 text-sm border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors">Cancel·lar</button>
+            <button @click="deleteTarget = null" class="px-4 py-2 text-sm border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors">{{ $t('common.cancel') }}</button>
             <button @click="confirmDelete" :disabled="deleting" class="px-4 py-2 text-sm font-medium bg-red-600 hover:bg-red-700 text-white rounded-lg disabled:opacity-60 transition-colors">
-              {{ deleting ? 'Eliminant...' : 'Eliminar' }}
+              {{ deleting ? $t('common.deleting') : $t('common.delete') }}
             </button>
           </div>
         </div>
@@ -155,10 +155,12 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { IconPlus, IconEdit, IconTrash, IconX, IconSitemap, IconAlertTriangle } from '@tabler/icons-vue'
 import { useDepartments } from '../composables/useDepartments'
 
 const { departments, loading, saving, error, pagination, load, create, update, remove } = useDepartments()
+const { t } = useI18n()
 
 // ── Formulari ─────────────────────────────────────────────────────────────────
 const modal      = reactive({ open: false, isEdit: false, editId: null })
@@ -195,7 +197,7 @@ async function submitModal() {
     ? await update(modal.editId, payload)
     : await create(payload)
   if (result.ok) { closeModal(); load(pagination.value.current_page) }
-  else { formErrors.value = result.errors || {}; formError.value = result.message || 'Error en desar.' }
+  else { formErrors.value = result.errors || {}; formError.value = result.message || t('common.error_saving') }
 }
 
 // ── Eliminar ──────────────────────────────────────────────────────────────────

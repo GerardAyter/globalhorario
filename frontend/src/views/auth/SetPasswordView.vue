@@ -2,9 +2,9 @@
   <div class="min-h-screen flex">
     <!-- Left column -->
     <div class="hidden md:flex w-1/2 bg-primary text-primary-contrast items-center justify-center p-8 flex-col">
-      <div class="text-2xl font-medium">HRSuite</div>
-      <div class="text-primary-200 text-sm mt-2">La gestió de persones, sense complexitat.</div>
-      <div class="mt-auto text-primary-400 text-xs">© 2026 HRSuite</div>
+      <div class="text-2xl font-medium">{{ $t('auth_brand.name') }}</div>
+      <div class="text-primary-200 text-sm mt-2">{{ $t('auth_brand.tagline') }}</div>
+      <div class="mt-auto text-primary-400 text-xs">{{ $t('auth_brand.copyright') }}</div>
     </div>
 
     <!-- Right column -->
@@ -16,9 +16,9 @@
           <div class="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
             <IconAlertCircle class="w-7 h-7 text-red-500" />
           </div>
-          <h1 class="text-xl font-medium text-gray-900">Enllaç no vàlid</h1>
-          <p class="text-sm text-gray-500 mt-2">Aquest enllaç ha caducat o no és vàlid. Contacta amb l'administrador perquè et reenvïi la invitació.</p>
-          <router-link to="/login" class="inline-block mt-6 text-sm text-blue-600 hover:underline">Anar al login</router-link>
+          <h1 class="text-xl font-medium text-gray-900">{{ $t('auth.invalid_link') }}</h1>
+          <p class="text-sm text-gray-500 mt-2">{{ $t('auth.invalid_link_desc') }}</p>
+          <router-link to="/login" class="inline-block mt-6 text-sm text-blue-600 hover:underline">{{ $t('auth.go_to_login') }}</router-link>
         </div>
 
         <!-- Contrasenya establerta correctament -->
@@ -26,24 +26,24 @@
           <div class="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
             <IconCheck class="w-7 h-7 text-green-600" />
           </div>
-          <h1 class="text-xl font-medium text-gray-900">Contrasenya creada</h1>
-          <p class="text-sm text-gray-500 mt-2">Ja pots accedir al teu compte amb el correu i la contrasenya que acabes de crear.</p>
+          <h1 class="text-xl font-medium text-gray-900">{{ $t('auth.password_created') }}</h1>
+          <p class="text-sm text-gray-500 mt-2">{{ $t('auth.password_created_desc') }}</p>
           <router-link to="/login" class="inline-block mt-6 btn-primary btn text-sm font-medium px-6 py-2.5 rounded-lg">
-            Accedir
+            {{ $t('auth.login') }}
           </router-link>
         </div>
 
         <!-- Formulari -->
         <div v-else>
-          <h1 class="text-2xl font-medium text-gray-900">Crea la teva contrasenya</h1>
-          <p class="text-sm text-gray-400 mt-1">Estableix una contrasenya per accedir al teu compte.</p>
+          <h1 class="text-2xl font-medium text-gray-900">{{ $t('auth.create_password') }}</h1>
+          <p class="text-sm text-gray-400 mt-1">{{ $t('auth.create_password_desc') }}</p>
           <p v-if="email" class="text-xs text-gray-500 mt-2 bg-gray-50 rounded-lg px-3 py-2">{{ email }}</p>
 
           <form class="mt-8 flex flex-col gap-4" @submit.prevent="handleSubmit">
             <div class="relative">
-              <label class="text-xs font-medium text-gray-600 mb-1 block">Nova contrasenya</label>
+              <label class="text-xs font-medium text-gray-600 mb-1 block">{{ $t('auth.new_password') }}</label>
               <input :type="showPassword ? 'text' : 'password'" v-model="password"
-                     placeholder="Mínim 8 caràcters"
+                     :placeholder="$t('auth.min_chars_placeholder')"
                      class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500"
                      :class="errors.password ? 'border-red-400' : ''" />
               <button type="button" class="absolute right-3 top-9 text-gray-400" @click="showPassword = !showPassword">
@@ -54,9 +54,9 @@
             </div>
 
             <div class="relative">
-              <label class="text-xs font-medium text-gray-600 mb-1 block">Confirmar contrasenya</label>
+              <label class="text-xs font-medium text-gray-600 mb-1 block">{{ $t('auth.confirm_password') }}</label>
               <input :type="showConfirm ? 'text' : 'password'" v-model="passwordConfirmation"
-                     placeholder="Repeteix la contrasenya"
+                     :placeholder="$t('auth.repeat_password_placeholder')"
                      class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500"
                      :class="errors.password_confirmation ? 'border-red-400' : ''" />
               <button type="button" class="absolute right-3 top-9 text-gray-400" @click="showConfirm = !showConfirm">
@@ -77,7 +77,7 @@
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
               </svg>
-              {{ loading ? 'Desant...' : 'Crear contrasenya' }}
+              {{ loading ? $t('common.saving') : $t('auth.create_password_btn') }}
             </button>
           </form>
         </div>
@@ -90,9 +90,11 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { IconEye, IconEyeOff, IconAlertCircle, IconCheck } from '@tabler/icons-vue'
 import api from '../../services/api'
 
+const { t } = useI18n()
 const route = useRoute()
 
 const token               = ref('')
@@ -120,11 +122,11 @@ async function handleSubmit() {
   errors.value   = {}
 
   if (password.value.length < 8) {
-    errors.value.password = 'La contrasenya ha de tenir almenys 8 caràcters'
+    errors.value.password = t('auth.password_min_length')
     return
   }
   if (password.value !== passwordConfirmation.value) {
-    errors.value.password_confirmation = 'Les contrasenyes no coincideixen'
+    errors.value.password_confirmation = t('auth.passwords_not_match')
     return
   }
 
@@ -148,10 +150,10 @@ async function handleSubmit() {
       if (msg.includes('vàlid') || msg.includes('caducat')) {
         tokenInvalid.value = true
       } else {
-        errorMsg.value = msg || 'Error en establir la contrasenya'
+        errorMsg.value = msg || t('auth.error_setting_password')
       }
     } else {
-      errorMsg.value = e?.response?.data?.message || 'Error inesperat. Torna-ho a intentar.'
+      errorMsg.value = e?.response?.data?.message || t('auth.unexpected_error')
     }
   } finally {
     loading.value = false

@@ -2,11 +2,11 @@
   <div>
     <div class="flex items-center justify-between mb-5">
       <div>
-        <h2 class="text-base font-medium text-gray-900">Empleats</h2>
-        <p class="text-sm text-gray-400 mt-0.5">{{ pagination.total }} empleats registrats</p>
+        <h2 class="text-base font-medium text-gray-900">{{ $t('employees_view.title') }}</h2>
+        <p class="text-sm text-gray-400 mt-0.5">{{ $t('employees_view.count', { n: pagination.total }) }}</p>
       </div>
       <button @click="openCreate" class="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-3 py-1.5 rounded-lg transition-colors">
-        <IconPlus class="w-4 h-4" />Nou empleat
+        <IconPlus class="w-4 h-4" />{{ $t('employees_view.new') }}
       </button>
     </div>
 
@@ -35,14 +35,14 @@
       <div v-else-if="error" class="flex flex-col items-center justify-center py-16 text-center">
         <IconAlertTriangle class="w-8 h-8 text-red-400 mb-2" />
         <p class="text-sm text-red-600">{{ error }}</p>
-        <button @click="load()" class="mt-3 text-xs text-blue-600 hover:underline">Tornar a intentar</button>
+        <button @click="load()" class="mt-3 text-xs text-blue-600 hover:underline">{{ $t('employees_view.retry') }}</button>
       </div>
 
       <!-- Buit -->
       <div v-else-if="employees.length === 0" class="flex flex-col items-center justify-center py-16 text-center">
         <IconUsers class="w-10 h-10 text-gray-300 mb-3" />
-        <p class="text-sm text-gray-500">Encara no hi ha empleats</p>
-        <button @click="openCreate" class="mt-3 text-sm text-blue-600 hover:underline">Afegeix el primer empleat</button>
+        <p class="text-sm text-gray-500">{{ $t('employees_view.empty') }}</p>
+        <button @click="openCreate" class="mt-3 text-sm text-blue-600 hover:underline">{{ $t('employees_view.create_first') }}</button>
       </div>
 
       <!-- Llista -->
@@ -77,27 +77,27 @@
             <span v-if="e.user" :class="roleBadgeClass(e.user.role)" class="text-[10px] font-medium px-2 py-0.5 rounded-full">
               {{ roleLabel(e.user.role) }}
             </span>
-            <span v-else class="text-[10px] font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-400">Sense accés</span>
+            <span v-else class="text-[10px] font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-400">{{ $t('employees_view.no_access') }}</span>
           </div>
 
           <!-- Actiu -->
           <div class="w-16 flex-shrink-0">
-            <span v-if="e.actiu" class="text-[10px] font-medium px-2 py-0.5 rounded-full bg-green-50 text-green-700">Actiu</span>
-            <span v-else class="text-[10px] font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">Baixa</span>
+            <span v-if="e.actiu" class="text-[10px] font-medium px-2 py-0.5 rounded-full bg-green-50 text-green-700">{{ $t('employees_view.active') }}</span>
+            <span v-else class="text-[10px] font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">{{ $t('employees_view.inactive') }}</span>
           </div>
 
           <!-- Botons -->
           <div class="flex items-center gap-1 flex-shrink-0">
-            <button @click="viewTarget = e" class="w-7 h-7 flex items-center justify-center rounded text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors" title="Veure detalls">
+            <button @click="viewTarget = e" class="w-7 h-7 flex items-center justify-center rounded text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors" :title="$t('employees_view.view_details')">
               <IconEye class="w-4 h-4" />
             </button>
-            <button @click="openEdit(e)" class="w-7 h-7 flex items-center justify-center rounded text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors" title="Editar">
+            <button @click="openEdit(e)" class="w-7 h-7 flex items-center justify-center rounded text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors" :title="$t('employees_view.edit')">
               <IconEdit class="w-4 h-4" />
             </button>
             <button v-if="e.user"
                     @click="doSendInvitation(e)"
                     :disabled="sendingInvitationId === e.id"
-                    :title="sentInvitations[e.id] ? 'Correu enviat!' : 'Enviar correu de recuperació de contrasenya'"
+                    :title="sentInvitations[e.id] ? $t('employees_view.email_sent') : $t('employees_view.send_recovery_email')"
                     class="w-7 h-7 flex items-center justify-center rounded transition-colors"
                     :class="sentInvitations[e.id]
                       ? 'text-green-600 bg-green-50'
@@ -111,7 +111,7 @@
             </button>
             <button @click="askDelete(e)"
                     :disabled="e.user?.role === 'admin'"
-                    :title="e.user?.role === 'admin' ? 'No es pot eliminar l\'administrador de l\'empresa' : 'Eliminar'"
+                    :title="e.user?.role === 'admin' ? $t('employees_view.cannot_delete_admin') : $t('employees_view.delete')"
                     class="w-7 h-7 flex items-center justify-center rounded transition-colors"
                     :class="e.user?.role === 'admin'
                       ? 'text-gray-200 cursor-not-allowed'
@@ -124,12 +124,12 @@
 
       <!-- Paginació -->
       <div v-if="pagination.last_page > 1" class="flex items-center justify-between px-5 py-3 border-t bg-gray-50">
-        <p class="text-xs text-gray-400">Pàgina {{ pagination.current_page }} de {{ pagination.last_page }}</p>
+        <p class="text-xs text-gray-400">{{ $t('common.page_of', { current: pagination.current_page, total: pagination.last_page }) }}</p>
         <div class="flex gap-1">
           <button @click="load(pagination.current_page - 1)" :disabled="pagination.current_page === 1"
-                  class="px-2.5 py-1 text-xs rounded border border-gray-200 disabled:opacity-40 hover:bg-white transition-colors">Anterior</button>
+            class="px-2.5 py-1 text-xs rounded border border-gray-200 disabled:opacity-40 hover:bg-white transition-colors">{{ $t('common.previous') }}</button>
           <button @click="load(pagination.current_page + 1)" :disabled="pagination.current_page === pagination.last_page"
-                  class="px-2.5 py-1 text-xs rounded border border-gray-200 disabled:opacity-40 hover:bg-white transition-colors">Següent</button>
+            class="px-2.5 py-1 text-xs rounded border border-gray-200 disabled:opacity-40 hover:bg-white transition-colors">{{ $t('common.next') }}</button>
         </div>
       </div>
     </div>
@@ -139,7 +139,7 @@
       <div v-if="modal.open" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" @click.self="closeModal">
         <div class="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col">
           <div class="flex items-center justify-between px-6 py-4 border-b flex-shrink-0">
-            <h3 class="font-medium text-gray-900">{{ modal.isEdit ? 'Editar empleat' : 'Nou empleat' }}</h3>
+            <h3 class="font-medium text-gray-900">{{ modal.isEdit ? $t('employees_view.edit_title') : $t('employees_view.new_title') }}</h3>
             <button @click="closeModal" class="text-gray-400 hover:text-gray-600"><IconX class="w-5 h-5" /></button>
           </div>
 
@@ -147,19 +147,19 @@
 
             <!-- Identitat -->
             <div>
-              <p class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3">Identitat</p>
+              <p class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3">{{ $t('employees_view.identity_section') }}</p>
               <div class="space-y-3">
                 <div class="grid grid-cols-2 gap-3">
                   <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1">Nom <span class="text-red-500">*</span></label>
-                    <input v-model="form.nom" type="text" placeholder="Nom"
+                    <label class="block text-xs font-medium text-gray-600 mb-1">{{ $t('employees_view.name_label') }}</label>
+                    <input v-model="form.nom" type="text" :placeholder="$t('employees_view.name_placeholder')"
                            class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                            :class="formErrors.nom ? 'border-red-400' : 'border-gray-200'" />
                     <p v-if="formErrors.nom" class="text-xs text-red-600 mt-1">{{ formErrors.nom[0] }}</p>
                   </div>
                   <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1">Cognoms <span class="text-red-500">*</span></label>
-                    <input v-model="form.cognoms" type="text" placeholder="Cognoms"
+                    <label class="block text-xs font-medium text-gray-600 mb-1">{{ $t('employees_view.surname_label') }}</label>
+                    <input v-model="form.cognoms" type="text" :placeholder="$t('employees_view.surname_placeholder')"
                            class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                            :class="formErrors.cognoms ? 'border-red-400' : 'border-gray-200'" />
                     <p v-if="formErrors.cognoms" class="text-xs text-red-600 mt-1">{{ formErrors.cognoms[0] }}</p>
@@ -167,18 +167,18 @@
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                   <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1">DNI / NIE</label>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">{{ $t('employees_view.dni_nie') }}</label>
                     <input v-model="form.dni_nie" type="text" placeholder="12345678A"
                            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
                   </div>
                   <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1">Núm. Seguretat Social</label>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">{{ $t('employees_view.nss') }}</label>
                     <input v-model="form.nss" type="text" placeholder="281234567890"
                            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
                   </div>
                 </div>
                 <div>
-                  <label class="block text-xs font-medium text-gray-600 mb-1">Data de naixement</label>
+                  <label class="block text-xs font-medium text-gray-600 mb-1">{{ $t('employees_view.birth_date') }}</label>
                   <input v-model="form.data_naixement" type="date"
                          class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
                 </div>
@@ -187,15 +187,15 @@
 
             <!-- Contacte -->
             <div>
-              <p class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3">Contacte</p>
+              <p class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3">{{ $t('employees_view.contact_section') }}</p>
               <div class="grid grid-cols-2 gap-3">
                 <div>
-                  <label class="block text-xs font-medium text-gray-600 mb-1">Email</label>
-                  <input v-model="form.email" type="email" placeholder="nom@empresa.com"
+                  <label class="block text-xs font-medium text-gray-600 mb-1">{{ $t('employees_view.email') }}</label>
+                  <input v-model="form.email" type="email" :placeholder="$t('auth.email_placeholder')"
                          class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
                 </div>
                 <div>
-                  <label class="block text-xs font-medium text-gray-600 mb-1">Telèfon</label>
+                  <label class="block text-xs font-medium text-gray-600 mb-1">{{ $t('employees_view.phone') }}</label>
                   <input v-model="form.telefon" type="tel" placeholder="+34 600 000 000"
                          class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
                 </div>
@@ -204,53 +204,53 @@
 
             <!-- Laboral -->
             <div>
-              <p class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3">Laboral</p>
+              <p class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3">{{ $t('employees_view.work_section') }}</p>
               <div class="space-y-3">
                 <div class="grid grid-cols-2 gap-3">
                   <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1">Departament</label>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">{{ $t('employees_view.department') }}</label>
                     <select v-model.number="form.department_id"
                             class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                      <option :value="null">Sense departament</option>
+                      <option :value="null">{{ $t('employees_view.no_department') }}</option>
                       <option v-for="dep in allDepartments" :key="dep.id" :value="dep.id">{{ dep.name }}</option>
                     </select>
                   </div>
                   <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1">Torn assignat</label>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">{{ $t('employees_view.assigned_shift') }}</label>
                     <select v-model.number="form.torn_id"
                             class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                      <option :value="null">Sense torn</option>
+                      <option :value="null">{{ $t('employees_view.no_shift') }}</option>
                       <option v-for="s in allShifts" :key="s.id" :value="s.id">{{ s.name }}</option>
                     </select>
                   </div>
                 </div>
                 <div>
-                  <label class="block text-xs font-medium text-gray-600 mb-1">Conveni laboral</label>
+                  <label class="block text-xs font-medium text-gray-600 mb-1">{{ $t('employees_view.agreement') }}</label>
                   <select v-model.number="form.conveni_id"
                           class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <option :value="null">Sense conveni assignat</option>
+                    <option :value="null">{{ $t('employees_view.no_agreement') }}</option>
                     <option v-for="c in allConvenis" :key="c.id" :value="c.id">{{ c.name }}</option>
                   </select>
                   <p v-if="form.conveni_id" class="text-[11px] text-gray-400 mt-1">
                     {{ allConvenis.find(c => c.id === form.conveni_id)?.weekly_hours }}h/set. ·
-                    {{ allConvenis.find(c => c.id === form.conveni_id)?.vacation_days }} dies vacances ·
-                    {{ allConvenis.find(c => c.id === form.conveni_id)?.personal_days }} dies personals
+                    {{ allConvenis.find(c => c.id === form.conveni_id)?.vacation_days }} {{ $t('common.days_other') }} {{ $t('absence.vacation_available').toLowerCase() }} ·
+                    {{ allConvenis.find(c => c.id === form.conveni_id)?.personal_days }} {{ $t('common.days_other') }} {{ $t('absence.personal_available').toLowerCase() }}
                   </p>
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                   <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1">Data d'alta</label>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">{{ $t('employees_view.hire_date') }}</label>
                     <input v-model="form.data_alta" type="date"
                            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
                   </div>
                   <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1">Data de baixa</label>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">{{ $t('employees_view.leave_date') }}</label>
                     <input v-model="form.data_baixa" type="date"
                            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
                   </div>
                 </div>
                 <div>
-                  <label class="block text-xs font-medium text-gray-600 mb-1">Percentatge de jornada (%)</label>
+                  <label class="block text-xs font-medium text-gray-600 mb-1">{{ $t('employees_view.work_percentage') }}</label>
                   <input v-model.number="form.percentatge_jornada" type="number" min="0" max="100" step="0.5" placeholder="100"
                          class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
                 </div>
@@ -261,7 +261,7 @@
                       <div class="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all"
                            :class="form.actiu ? 'left-4' : 'left-0.5'" />
                     </div>
-                    <span class="text-sm text-gray-700">Actiu</span>
+                    <span class="text-sm text-gray-700">{{ $t('employees_view.active_toggle') }}</span>
                   </label>
                   <label class="flex items-center gap-2.5 cursor-pointer select-none">
                     <div class="relative w-9 h-5 rounded-full transition-colors" :class="form.geoloc_requerida ? 'bg-blue-600' : 'bg-gray-300'"
@@ -269,7 +269,7 @@
                       <div class="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all"
                            :class="form.geoloc_requerida ? 'left-4' : 'left-0.5'" />
                     </div>
-                    <span class="text-sm text-gray-700">Geolocalització requerida</span>
+                    <span class="text-sm text-gray-700">{{ $t('employees_view.geo_required') }}</span>
                   </label>
                 </div>
               </div>
@@ -277,11 +277,11 @@
 
             <!-- WhatsApp -->
             <div>
-              <p class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3">WhatsApp</p>
+              <p class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3">{{ $t('employees_view.whatsapp_section') }}</p>
               <div class="grid grid-cols-2 gap-3">
                 <div>
-                  <label class="block text-xs font-medium text-gray-600 mb-1">Telèfon WhatsApp (hash)</label>
-                  <input v-model="form.whatsapp_phone_hash" type="text" placeholder="Hash del número"
+                  <label class="block text-xs font-medium text-gray-600 mb-1">{{ $t('employees_view.whatsapp_hash') }}</label>
+                  <input v-model="form.whatsapp_phone_hash" type="text" :placeholder="$t('employees_view.whatsapp_hash_placeholder')"
                          class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
                 </div>
                 <div class="flex items-end pb-2">
@@ -291,7 +291,7 @@
                       <div class="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all"
                            :class="form.whatsapp_verificat ? 'left-4' : 'left-0.5'" />
                     </div>
-                    <span class="text-sm text-gray-700">Verificat</span>
+                    <span class="text-sm text-gray-700">{{ $t('employees_view.verified') }}</span>
                   </label>
                 </div>
               </div>
@@ -302,7 +302,7 @@
 
             <div class="flex items-center justify-end gap-2 pt-1 border-t">
               <button type="button" @click="closeModal" class="px-4 py-2 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                Cancel·lar
+                {{ $t('common.cancel') }}
               </button>
               <button type="submit" :disabled="saving"
                       class="px-4 py-2 text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white rounded-lg disabled:opacity-60 flex items-center gap-2 transition-colors">
@@ -310,7 +310,7 @@
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
                   <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
                 </svg>
-                {{ saving ? 'Desant...' : (modal.isEdit ? 'Desar canvis' : 'Crear empleat') }}
+                {{ saving ? $t('employees_view.saving') : (modal.isEdit ? $t('employees_view.save') : $t('employees_view.create')) }}
               </button>
             </div>
           </form>
@@ -323,7 +323,7 @@
       <div v-if="viewTarget" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" @click.self="viewTarget = null">
         <div class="bg-white rounded-xl shadow-xl w-full max-w-md max-h-[90vh] flex flex-col">
           <div class="flex items-center justify-between px-6 py-4 border-b flex-shrink-0">
-            <h3 class="font-medium text-gray-900">Detalls de l'empleat</h3>
+            <h3 class="font-medium text-gray-900">{{ $t('employees_view.details_title') }}</h3>
             <button @click="viewTarget = null" class="text-gray-400 hover:text-gray-600"><IconX class="w-5 h-5" /></button>
           </div>
 
@@ -341,93 +341,93 @@
                   <span v-if="viewTarget.user" :class="roleBadgeClass(viewTarget.user.role)" class="text-[10px] font-medium px-2 py-0.5 rounded-full">
                     {{ roleLabel(viewTarget.user.role) }}
                   </span>
-                  <span v-if="viewTarget.actiu" class="text-[10px] font-medium px-2 py-0.5 rounded-full bg-green-50 text-green-700">Actiu</span>
-                  <span v-else class="text-[10px] font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">Baixa</span>
+                  <span v-if="viewTarget.actiu" class="text-[10px] font-medium px-2 py-0.5 rounded-full bg-green-50 text-green-700">{{ $t('employees_view.active') }}</span>
+                  <span v-else class="text-[10px] font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">{{ $t('employees_view.inactive') }}</span>
                 </div>
               </div>
             </div>
 
             <!-- Identitat -->
             <div class="border-t pt-4 space-y-2.5">
-              <p class="text-xs font-medium text-gray-400 uppercase tracking-wider">Identitat</p>
+              <p class="text-xs font-medium text-gray-400 uppercase tracking-wider">{{ $t('employees_view.identity_section') }}</p>
               <div v-if="viewTarget.dni_nie" class="flex gap-3 text-sm">
-                <span class="w-40 text-gray-400 flex-shrink-0">DNI / NIE</span>
+                <span class="w-40 text-gray-400 flex-shrink-0">{{ $t('employees_view.dni_nie_label') }}</span>
                 <span class="text-gray-800">{{ viewTarget.dni_nie }}</span>
               </div>
               <div v-if="viewTarget.nss" class="flex gap-3 text-sm">
-                <span class="w-40 text-gray-400 flex-shrink-0">Núm. SS</span>
+                <span class="w-40 text-gray-400 flex-shrink-0">{{ $t('employees_view.ss_number') }}</span>
                 <span class="text-gray-800">{{ viewTarget.nss }}</span>
               </div>
               <div v-if="viewTarget.data_naixement" class="flex gap-3 text-sm">
-                <span class="w-40 text-gray-400 flex-shrink-0">Data naixement</span>
+                <span class="w-40 text-gray-400 flex-shrink-0">{{ $t('employees_view.birth_date_label') }}</span>
                 <span class="text-gray-800">{{ formatDate(viewTarget.data_naixement) }}</span>
               </div>
             </div>
 
             <!-- Contacte -->
             <div class="border-t pt-4 space-y-2.5">
-              <p class="text-xs font-medium text-gray-400 uppercase tracking-wider">Contacte</p>
+              <p class="text-xs font-medium text-gray-400 uppercase tracking-wider">{{ $t('employees_view.contact_section') }}</p>
               <div v-if="viewTarget.email" class="flex gap-3 text-sm">
-                <span class="w-40 text-gray-400 flex-shrink-0">Email</span>
+                <span class="w-40 text-gray-400 flex-shrink-0">{{ $t('employees_view.email') }}</span>
                 <a :href="`mailto:${viewTarget.email}`" class="text-blue-600 hover:underline">{{ viewTarget.email }}</a>
               </div>
               <div v-if="viewTarget.telefon" class="flex gap-3 text-sm">
-                <span class="w-40 text-gray-400 flex-shrink-0">Telèfon</span>
+                <span class="w-40 text-gray-400 flex-shrink-0">{{ $t('employees_view.phone') }}</span>
                 <span class="text-gray-800">{{ viewTarget.telefon }}</span>
               </div>
             </div>
 
             <!-- Laboral -->
             <div class="border-t pt-4 space-y-2.5">
-              <p class="text-xs font-medium text-gray-400 uppercase tracking-wider">Laboral</p>
+              <p class="text-xs font-medium text-gray-400 uppercase tracking-wider">{{ $t('employees_view.work_section') }}</p>
               <div v-if="viewTarget.company" class="flex gap-3 text-sm">
-                <span class="w-40 text-gray-400 flex-shrink-0">Empresa</span>
+                <span class="w-40 text-gray-400 flex-shrink-0">{{ $t('employees_view.company') }}</span>
                 <span class="text-gray-800">{{ viewTarget.company.name }}</span>
               </div>
               <div v-if="viewTarget.department" class="flex gap-3 text-sm">
-                <span class="w-40 text-gray-400 flex-shrink-0">Departament</span>
+                <span class="w-40 text-gray-400 flex-shrink-0">{{ $t('employees_view.department_label') }}</span>
                 <span class="text-gray-800">{{ viewTarget.department.name }}</span>
               </div>
               <div v-if="viewTarget.shift" class="flex gap-3 text-sm">
-                <span class="w-40 text-gray-400 flex-shrink-0">Torn</span>
+                <span class="w-40 text-gray-400 flex-shrink-0">{{ $t('employees_view.shift_label') }}</span>
                 <span class="flex items-center gap-1.5">
                   <span class="w-2 h-2 rounded-full inline-block" :style="{ backgroundColor: viewTarget.shift.color || '#94a3b8' }" />
                   <span class="text-gray-800">{{ viewTarget.shift.name }}</span>
                 </span>
               </div>
               <div v-if="viewTarget.conveni" class="flex gap-3 text-sm">
-                <span class="w-40 text-gray-400 flex-shrink-0">Conveni</span>
+                <span class="w-40 text-gray-400 flex-shrink-0">{{ $t('employees_view.agreement_label') }}</span>
                 <span class="text-gray-800">
                   {{ viewTarget.conveni.name }}
                   <span class="text-gray-400 text-xs ml-1">
-                    ({{ viewTarget.conveni.weekly_hours }}h/set. · {{ viewTarget.conveni.vacation_days }}d vac. · {{ viewTarget.conveni.personal_days }}d pers.)
+                    ({{ viewTarget.conveni.weekly_hours }}h/set. · {{ viewTarget.conveni.vacation_days }} {{ $t('common.days_other') }} · {{ viewTarget.conveni.personal_days }} {{ $t('common.days_other') }})
                   </span>
                 </span>
               </div>
               <div v-if="viewTarget.data_alta" class="flex gap-3 text-sm">
-                <span class="w-40 text-gray-400 flex-shrink-0">Data alta</span>
+                <span class="w-40 text-gray-400 flex-shrink-0">{{ $t('employees_view.hire_date_label') }}</span>
                 <span class="text-gray-800">{{ formatDate(viewTarget.data_alta) }}</span>
               </div>
               <div v-if="viewTarget.data_baixa" class="flex gap-3 text-sm">
-                <span class="w-40 text-gray-400 flex-shrink-0">Data baixa</span>
+                <span class="w-40 text-gray-400 flex-shrink-0">{{ $t('employees_view.leave_date_label') }}</span>
                 <span class="text-gray-800">{{ formatDate(viewTarget.data_baixa) }}</span>
               </div>
               <div v-if="viewTarget.percentatge_jornada != null" class="flex gap-3 text-sm">
-                <span class="w-40 text-gray-400 flex-shrink-0">% Jornada</span>
+                <span class="w-40 text-gray-400 flex-shrink-0">{{ $t('employees_view.work_percentage_label') }}</span>
                 <span class="text-gray-800">{{ viewTarget.percentatge_jornada }}%</span>
               </div>
               <div class="flex gap-3 text-sm">
-                <span class="w-40 text-gray-400 flex-shrink-0">Geoloc. requerida</span>
-                <span class="text-gray-800">{{ viewTarget.geoloc_requerida ? 'Sí' : 'No' }}</span>
+                <span class="w-40 text-gray-400 flex-shrink-0">{{ $t('employees_view.geo_required_label') }}</span>
+                <span class="text-gray-800">{{ viewTarget.geoloc_requerida ? $t('common.yes') : $t('common.no') }}</span>
               </div>
             </div>
 
             <!-- WhatsApp -->
             <div v-if="viewTarget.whatsapp_phone_hash" class="border-t pt-4 space-y-2.5">
-              <p class="text-xs font-medium text-gray-400 uppercase tracking-wider">WhatsApp</p>
+              <p class="text-xs font-medium text-gray-400 uppercase tracking-wider">{{ $t('employees_view.whatsapp_section') }}</p>
               <div class="flex gap-3 text-sm">
-                <span class="w-40 text-gray-400 flex-shrink-0">Verificat</span>
-                <span class="text-gray-800">{{ viewTarget.whatsapp_verificat ? 'Sí' : 'No' }}</span>
+                <span class="w-40 text-gray-400 flex-shrink-0">{{ $t('employees_view.verified') }}</span>
+                <span class="text-gray-800">{{ viewTarget.whatsapp_verificat ? $t('common.yes') : $t('common.no') }}</span>
               </div>
             </div>
           </div>
@@ -444,17 +444,16 @@
               <IconAlertTriangle class="w-5 h-5 text-red-600" />
             </div>
             <div>
-              <p class="font-medium text-gray-900">Eliminar empleat</p>
+              <p class="font-medium text-gray-900">{{ $t('employees_view.delete_title') }}</p>
               <p class="text-sm text-gray-500 mt-1">
-                Estàs a punt d'eliminar <strong class="text-gray-800">{{ deleteTarget.nom }} {{ deleteTarget.cognoms }}</strong>.
-                Totes les dades s'eliminaran permanentment.
+                {{ $t('employees_view.delete_desc', { name: `${deleteTarget.nom} ${deleteTarget.cognoms}` }) }}
               </p>
             </div>
           </div>
           <div class="flex gap-2 justify-end">
-            <button @click="deleteTarget = null" class="px-4 py-2 text-sm border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors">Cancel·lar</button>
+            <button @click="deleteTarget = null" class="px-4 py-2 text-sm border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors">{{ $t('common.cancel') }}</button>
             <button @click="confirmDelete" :disabled="deleting" class="px-4 py-2 text-sm font-medium bg-red-600 hover:bg-red-700 text-white rounded-lg disabled:opacity-60 transition-colors">
-              {{ deleting ? 'Eliminant...' : 'Eliminar' }}
+              {{ deleting ? $t('common.deleting') : $t('employees_view.delete_confirm') }}
             </button>
           </div>
         </div>
@@ -464,7 +463,8 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { IconPlus, IconEdit, IconTrash, IconX, IconEye, IconUsers, IconAlertTriangle, IconMail, IconCheck } from '@tabler/icons-vue'
 import { useEmployees } from '../composables/useEmployees'
 import { useDepartments } from '../composables/useDepartments'
@@ -478,6 +478,9 @@ const { loadAll: loadAllShifts }      = useShifts()
 const allDepartments = ref([])
 const allShifts      = ref([])
 const allConvenis    = ref([])
+const { t, locale } = useI18n()
+
+const dateLocale = computed(() => ({ ca: 'ca-ES', es: 'es-ES', en: 'en-GB' }[locale.value] || 'ca-ES'))
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 const AVATAR_COLORS = ['#3B82F6','#10B981','#F59E0B','#EF4444','#8B5CF6','#EC4899','#14B8A6','#F97316']
@@ -488,8 +491,13 @@ function avatarColor(name) {
 }
 
 function roleLabel(role) {
-  const map = { founder: 'Founder', superadmin: 'Superadmin', admin: 'Admin', hr: 'RRHH', user: 'Usuari' }
-  return map[role] || role
+  return {
+    founder: t('roles.founder'),
+    superadmin: t('roles.superadmin'),
+    admin: t('roles.admin'),
+    hr: t('roles.hr'),
+    user: t('roles.user'),
+  }[role] || role
 }
 
 function roleBadgeClass(role) {
@@ -505,7 +513,7 @@ function roleBadgeClass(role) {
 
 function formatDate(d) {
   if (!d) return ''
-  return new Date(d).toLocaleDateString('ca-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })
+  return new Date(d).toLocaleDateString(dateLocale.value, { day: '2-digit', month: '2-digit', year: 'numeric' })
 }
 
 // ── Formulari ─────────────────────────────────────────────────────────────────
@@ -617,7 +625,7 @@ async function doSendInvitation(e) {
       sentInvitations.value = copy
     }, 3000)
   } else {
-    invitationError.value = result.message || "No s'ha pogut enviar el correu"
+    invitationError.value = result.message || t('employees_view.send_error')
     setTimeout(() => { invitationError.value = '' }, 5000)
   }
 }

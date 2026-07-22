@@ -22,7 +22,7 @@
         <!-- Horari setmanal -->
         <div class="bg-white border border-gray-200 rounded-xl overflow-hidden flex flex-col">
           <div class="px-4 py-3 border-b flex items-center justify-between">
-            <h3 class="text-sm font-medium text-gray-900">Horari aquesta setmana</h3>
+            <h3 class="text-sm font-medium text-gray-900">{{ $t('dashboard.weekly_schedule') }}</h3>
             <span class="text-xs text-gray-400">{{ weekRangeLabel }}</span>
           </div>
 
@@ -35,8 +35,8 @@
 
           <div v-else-if="!todayShift" class="flex-1 flex flex-col items-center justify-center py-10 text-center px-4">
             <IconCalendarOff class="w-8 h-8 text-gray-200 mb-2" />
-            <p class="text-sm text-gray-400">Sense torn assignat</p>
-            <p class="text-xs text-gray-300 mt-1">Contacta amb l'administrador</p>
+            <p class="text-sm text-gray-400">{{ $t('dashboard.no_shift') }}</p>
+            <p class="text-xs text-gray-300 mt-1">{{ $t('dashboard.contact_admin') }}</p>
           </div>
 
           <div v-else class="divide-y divide-gray-50 flex-1">
@@ -57,7 +57,7 @@
                   <span class="w-2 h-2 rounded-full flex-shrink-0"
                         :style="{ backgroundColor: todayShift.color || '#94a3b8' }" />
                   <span class="text-xs font-medium text-gray-700 truncate">{{ todayShift.name }}</span>
-                  <span v-if="day.isToday" class="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 flex-shrink-0">Avui</span>
+                  <span v-if="day.isToday" class="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 flex-shrink-0">{{ $t('dashboard.today_badge') }}</span>
                 </div>
                 <p class="text-xs text-gray-400 mt-0.5 pl-3.5">
                   {{ todayShift.start_time?.substring(0,5) }}
@@ -68,7 +68,7 @@
                 </p>
               </div>
               <div v-else class="flex-1">
-                <span class="text-xs text-gray-300">Lliure</span>
+                <span class="text-xs text-gray-300">{{ $t('dashboard.day_off') }}</span>
               </div>
             </div>
           </div>
@@ -76,7 +76,7 @@
           <div v-if="todayShift" class="border-t px-4 py-2.5">
             <router-link to="/time-entries"
                          class="text-xs text-blue-600 hover:underline flex items-center gap-1">
-              Veure control horari <IconArrowRight class="w-3 h-3" />
+              {{ $t('dashboard.view_schedule') }} <IconArrowRight class="w-3 h-3" />
             </router-link>
           </div>
         </div>
@@ -92,11 +92,11 @@
             <div class="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-100 transition-colors">
               <IconUmbrella class="w-5 h-5 text-blue-500" />
             </div>
-            <p class="text-sm font-medium text-gray-900 group-hover:text-blue-600 transition-colors">Calendari</p>
+            <p class="text-sm font-medium text-gray-900 group-hover:text-blue-600 transition-colors">{{ $t('dashboard.calendar_title') }}</p>
           </div>
-          <p class="text-xs text-gray-400 leading-relaxed">Consulta i sol·licita vacances, dies personals i absències.</p>
+          <p class="text-xs text-gray-400 leading-relaxed">{{ $t('dashboard.calendar_desc') }}</p>
           <p class="text-xs text-blue-500 mt-3 flex items-center gap-1">
-            Veure calendari <IconArrowRight class="w-3 h-3" />
+            {{ $t('dashboard.view_calendar') }} <IconArrowRight class="w-3 h-3" />
           </p>
         </router-link>
 
@@ -106,14 +106,14 @@
             <div class="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center flex-shrink-0">
               <IconStar class="w-5 h-5 text-amber-500" />
             </div>
-            <p class="text-sm font-medium text-gray-900">Properes dates</p>
+            <p class="text-sm font-medium text-gray-900">{{ $t('dashboard.upcoming_title') }}</p>
           </div>
 
           <div v-if="upcomingItemsLoading" class="space-y-2">
             <div v-for="i in 3" :key="i" class="h-4 bg-gray-100 animate-pulse rounded w-full" />
           </div>
           <div v-else-if="upcomingItems.length === 0" class="text-xs text-gray-400">
-            Sense festius ni vacances properes
+            {{ $t('dashboard.no_upcoming') }}
           </div>
           <div v-else class="space-y-2">
             <div v-for="item in upcomingItems" :key="`${item.kind}-${item.date}-${item.name}`"
@@ -136,9 +136,9 @@
 
           <div v-if="!upcomingItemsLoading && upcomingItems.length > 0"
                class="mt-3 pt-2.5 border-t flex gap-3 text-[10px] text-gray-400">
-            <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-red-400" />Festiu</span>
-            <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-blue-400" />Aprovat</span>
-            <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-amber-400" />Pendent</span>
+            <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-red-400" />{{ $t('dashboard.legend_holiday') }}</span>
+            <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-blue-400" />{{ $t('dashboard.legend_approved') }}</span>
+            <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-amber-400" />{{ $t('dashboard.legend_pending') }}</span>
           </div>
         </div>
 
@@ -149,11 +149,11 @@
             <div class="w-9 h-9 rounded-xl bg-green-50 flex items-center justify-center flex-shrink-0 group-hover:bg-green-100 transition-colors">
               <IconReceipt class="w-5 h-5 text-green-600" />
             </div>
-            <p class="text-sm font-medium text-gray-900 group-hover:text-green-700 transition-colors">Les meves nòmines</p>
+            <p class="text-sm font-medium text-gray-900 group-hover:text-green-700 transition-colors">{{ $t('dashboard.payrolls_title') }}</p>
           </div>
-          <p class="text-xs text-gray-400 leading-relaxed">Accedeix als teus rebuts de salari i documents laborals.</p>
+          <p class="text-xs text-gray-400 leading-relaxed">{{ $t('dashboard.payrolls_desc') }}</p>
           <p class="text-xs text-green-600 mt-3 flex items-center gap-1">
-            Consultar <IconArrowRight class="w-3 h-3" />
+            {{ $t('dashboard.payrolls_link') }} <IconArrowRight class="w-3 h-3" />
           </p>
         </router-link>
 
@@ -162,7 +162,7 @@
 
     <!-- ── PANELLS DE GESTIÓ (HR+) ────────────────────────────────────────── -->
     <template v-if="isManagement">
-      <div v-if="error" class="bg-red-50 text-red-700 rounded-lg p-3 mb-4 text-sm">Error carregant dades</div>
+      <div v-if="error" class="bg-red-50 text-red-700 rounded-lg p-3 mb-4 text-sm">{{ $t('dashboard.error') }}</div>
 
       <div class="grid grid-cols-4 gap-3 mb-4">
         <KpiCard v-for="k in kpis" :key="k.label" :label="k.label" :value="k.valueDisplay" :trend="k.trend" />
@@ -171,8 +171,8 @@
       <div class="grid" style="grid-template-columns: 3fr 2fr; gap: 1rem;">
         <div class="bg-white border border-gray-200 rounded-xl p-4">
           <div class="flex items-center justify-between mb-3">
-            <h3 class="font-medium text-sm">Últimes sol·licituds al calendari</h3>
-            <router-link to="/absences" class="text-xs text-blue-700 hover:underline">veure calendari →</router-link>
+            <h3 class="font-medium text-sm">{{ $t('dashboard.latest_absences') }}</h3>
+            <router-link to="/absences" class="text-xs text-blue-700 hover:underline">{{ $t('dashboard.view_calendar_link') }}</router-link>
           </div>
           <div v-if="loading" class="space-y-2">
             <div v-for="i in 3" :key="i" class="h-8 bg-gray-100 animate-pulse rounded" />
@@ -188,17 +188,17 @@
                 <Badge :variant="String(a.status || '').toLowerCase().includes('aprov') ? 'green' : 'amber'">{{ a.status || 'Pendent' }}</Badge>
               </div>
             </div>
-            <p v-if="!latestAbsences?.length" class="text-sm text-gray-400">Sense absències recents</p>
+            <p v-if="!latestAbsences?.length" class="text-sm text-gray-400">{{ $t('dashboard.no_absences') }}</p>
           </div>
         </div>
 
         <div class="bg-white border border-gray-200 rounded-xl p-4">
-          <h3 class="font-medium mb-3 text-sm">Alertes actives</h3>
+          <h3 class="font-medium mb-3 text-sm">{{ $t('dashboard.alerts_title') }}</h3>
           <div v-if="loading" class="space-y-2">
             <div v-for="i in 2" :key="i" class="h-8 bg-gray-100 animate-pulse rounded" />
           </div>
           <div v-else>
-            <div v-if="!alerts?.length" class="text-sm text-gray-500">Sense alertes actives</div>
+            <div v-if="!alerts?.length" class="text-sm text-gray-500">{{ $t('dashboard.no_alerts') }}</div>
             <AlertItem v-for="al in alerts" :key="al.id" :level="al.level" :message="al.message" />
           </div>
         </div>
@@ -208,13 +208,14 @@
     <!-- Sense empleat ni gestió -->
     <div v-if="!hasEmployee && !isManagement"
          class="bg-white border border-gray-200 rounded-xl p-8 text-center text-sm text-gray-400">
-      Benvingut/da. Contacta amb l'administrador per configurar el teu perfil d'empleat.
+      {{ $t('dashboard.no_employee_msg') }}
     </div>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '../stores/auth'
 import { useDashboard } from '../composables/useDashboard'
 import { useTimeTracking } from '../composables/useTimeTracking'
@@ -229,6 +230,9 @@ import {
   IconStar, IconReceipt,
 } from '@tabler/icons-vue'
 
+const { t, locale } = useI18n()
+const dateLocale = computed(() => ({ ca: 'ca-ES', es: 'es-ES', en: 'en-GB' }[locale.value] || 'ca-ES'))
+
 const auth = useAuthStore()
 const { loading, error, metrics, latestAbsences, alerts, load } = useDashboard()
 const { shift, loading: trackingLoading, load: loadTracking } = useTimeTracking()
@@ -241,17 +245,18 @@ const isManagement = computed(() => (ROLE_HIERARCHY[auth.user?.role] ?? -1) >= R
 // ── Salutació ──────────────────────────────────────────────────────────────────
 const greeting = computed(() => {
   const h = new Date().getHours()
-  if (h < 12) return 'Bon dia'
-  if (h < 20) return 'Bona tarda'
-  return 'Bona nit'
+  if (h < 12) return t('dashboard.greeting_morning')
+  if (h < 20) return t('dashboard.greeting_afternoon')
+  return t('dashboard.greeting_evening')
 })
 
 const today = computed(() =>
-  new Date().toLocaleDateString('ca-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+  new Date().toLocaleDateString(dateLocale.value, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
 )
 
 // ── Horari setmanal ────────────────────────────────────────────────────────────
-const DAY_SHORT = ['DL', 'DM', 'DC', 'DJ', 'DV', 'DS', 'DG']
+const DAY_KEYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
+function dayAbbr(i) { return t('days.' + (DAY_KEYS[i] || 'mon')) }
 
 const todayShift = computed(() => shift.value ?? null)
 
@@ -273,7 +278,7 @@ const weekDays = computed(() => {
     d.setDate(monday.getDate() + i)
     const isToday = d.toDateString() === today.toDateString()
     const isoDow = i + 1 // 1=DL … 7=DG
-    return { iso: d.toISOString(), dayNum: d.getDate(), shortLabel: DAY_SHORT[i], isToday, isoDow }
+    return { iso: d.toISOString(), dayNum: d.getDate(), shortLabel: dayAbbr(i), isToday, isoDow }
   })
 })
 
@@ -281,7 +286,7 @@ const weekRangeLabel = computed(() => {
   const days = weekDays.value
   const first = new Date(days[0].iso)
   const last  = new Date(days[6].iso)
-  return `${first.getDate()} – ${last.getDate()} ${last.toLocaleDateString('ca-ES', { month: 'short' })}`
+  return `${first.getDate()} – ${last.getDate()} ${last.toLocaleDateString(dateLocale.value, { month: 'short' })}`
 })
 
 function shiftOnDay(day) {
@@ -350,7 +355,7 @@ const upcomingItems = computed(() => {
     .sort((a, b) => a.date.localeCompare(b.date))
     .slice(0, 5)
     .map(item => {
-      const fmt = d => new Date(d + 'T00:00:00').toLocaleDateString('ca-ES', { day: 'numeric', month: 'short' })
+      const fmt = d => new Date(d + 'T00:00:00').toLocaleDateString(dateLocale.value, { day: 'numeric', month: 'short' })
       const dateLabel = item.endDate && item.endDate !== item.date
         ? `${fmt(item.date)} – ${fmt(item.endDate)}`
         : fmt(item.date)
@@ -362,10 +367,10 @@ const upcomingItems = computed(() => {
 const kpis = computed(() => {
   const m = metrics.value || {}
   return [
-    { label: 'Empleats actius',       valueDisplay: m.active_employees || 0, trend: m.employees_trend || 0 },
-    { label: 'Fitxant avui',          valueDisplay: m.clocking_today   || 0, trend: m.clocking_trend  || 0 },
-    { label: 'Al calendari avui',     valueDisplay: m.absences_today   || 0, trend: m.absences_trend  || 0 },
-    { label: 'Sol·licituds pendents', valueDisplay: m.pending_requests || 0, trend: m.requests_trend  || 0 },
+    { label: t('dashboard.kpi_active_employees'), valueDisplay: m.active_employees || 0, trend: m.employees_trend || 0 },
+    { label: t('dashboard.kpi_clocking_today'),   valueDisplay: m.clocking_today   || 0, trend: m.clocking_trend  || 0 },
+    { label: t('dashboard.kpi_absences_today'),   valueDisplay: m.absences_today   || 0, trend: m.absences_trend  || 0 },
+    { label: t('dashboard.kpi_pending_requests'), valueDisplay: m.pending_requests || 0, trend: m.requests_trend  || 0 },
   ]
 })
 

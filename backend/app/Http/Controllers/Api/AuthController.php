@@ -77,6 +77,7 @@ class AuthController extends BaseController
         $request->validate([
             'name'                  => 'required|string|max:255',
             'email'                 => 'required|email|unique:users,email,' . $user->id,
+            'locale'                => 'nullable|in:ca,es,en',
             'current_password'      => 'required_with:password|string',
             'password'              => 'nullable|string|min:8|confirmed',
             'password_confirmation' => 'nullable|string',
@@ -91,8 +92,9 @@ class AuthController extends BaseController
             $user->password = Hash::make($request->input('password'));
         }
 
-        $user->name  = $request->input('name');
-        $user->email = $request->input('email');
+        $user->name   = $request->input('name');
+        $user->email  = $request->input('email');
+        $user->locale = $request->input('locale', $user->locale ?? 'ca');
         $user->save();
 
         return $this->success($user->load('employee.company'));

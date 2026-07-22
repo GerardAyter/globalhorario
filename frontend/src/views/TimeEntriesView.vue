@@ -2,8 +2,8 @@
   <div>
     <div class="flex items-center justify-between mb-5">
       <div>
-        <h2 class="text-base font-medium text-gray-900">Control horari</h2>
-        <p class="text-sm text-gray-400 mt-0.5">Registre de les teves hores</p>
+        <h2 class="text-base font-medium text-gray-900">{{ $t('time_tracking.title') }}</h2>
+        <p class="text-sm text-gray-400 mt-0.5">{{ $t('time_tracking.subtitle') }}</p>
       </div>
     </div>
 
@@ -15,8 +15,8 @@
     <!-- ── Torn del dia ───────────────────────────────────────────────────── -->
     <div v-if="shift" class="mb-5 bg-white border border-gray-200 rounded-xl px-5 py-4">
       <p class="text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-2.5">
-        Torn assignat{{ shiftAppliesToday ? ' avui' : '' }}
-        <span v-if="!shiftAppliesToday" class="ml-2 text-amber-600 normal-case font-normal">— no aplicable avui</span>
+        {{ $t(shiftAppliesToday ? 'shift.assigned_today' : 'shift.assigned') }}
+        <span v-if="!shiftAppliesToday" class="ml-2 text-amber-600 normal-case font-normal">— {{ $t('shift.not_applicable') }}</span>
       </p>
       <div class="flex flex-wrap items-center gap-x-5 gap-y-2">
         <!-- Nom -->
@@ -41,13 +41,13 @@
         <div v-if="shift.flexible_entry && shift.flex_entry_from && shift.flex_entry_to"
              class="flex items-center gap-1.5 text-sm text-amber-700 bg-amber-50 rounded-lg px-2.5 py-1">
           <IconArrowsHorizontal class="w-3.5 h-3.5" />
-          <span>Entrada: {{ shift.flex_entry_from.substring(0,5) }} – {{ shift.flex_entry_to.substring(0,5) }}</span>
+          <span>{{ $t('shift.flexible_entry') }}: {{ shift.flex_entry_from.substring(0,5) }} – {{ shift.flex_entry_to.substring(0,5) }}</span>
         </div>
 
         <!-- Pausa -->
         <div v-if="shift.break_duration" class="flex items-center gap-1.5 text-sm text-gray-500">
           <IconCoffee class="w-3.5 h-3.5 text-gray-400" />
-          <span>Pausa {{ shift.break_duration }} min</span>
+          <span>{{ $t('shift.break_duration', { n: shift.break_duration }) }}</span>
           <span v-if="shift.break_from && shift.break_to" class="text-xs text-gray-400">
             ({{ shift.break_from.substring(0,5) }}–{{ shift.break_to.substring(0,5) }})
           </span>
@@ -61,7 +61,7 @@
                   shift.days_of_week.map(Number).includes(d) ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-300',
                   d === todayDow && shift.days_of_week.map(Number).includes(d) ? 'ring-2 ring-blue-400 ring-offset-1' : ''
                 ]">
-            {{ ['DL','DM','DC','DJ','DV','DS','DG'][d-1] }}
+            {{ dayAbbr(d) }}
           </span>
         </div>
       </div>
@@ -70,18 +70,18 @@
     <!-- ── Historial personal ──────────────────────────────────────────────── -->
     <div class="bg-white border border-gray-200 rounded-xl overflow-hidden mb-5">
       <div class="px-5 py-3 border-b flex items-center justify-between">
-        <h3 class="text-sm font-medium text-gray-700">El meu historial</h3>
+        <h3 class="text-sm font-medium text-gray-700">{{ $t('time_tracking.my_history') }}</h3>
         <div class="flex items-center gap-2">
           <select v-model.number="days"
                   class="text-xs border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <option :value="7">Última setmana</option>
-            <option :value="30">Últim mes</option>
-            <option :value="90">Últims 3 mesos</option>
+            <option :value="7">{{ $t('time_tracking.last_week') }}</option>
+            <option :value="30">{{ $t('time_tracking.last_month') }}</option>
+            <option :value="90">{{ $t('time_tracking.last_3months') }}</option>
           </select>
           <button @click="router.push({ name: 'time-entries-history' })"
                   class="flex items-center gap-1.5 text-xs text-blue-600 hover:text-blue-800 border border-blue-200 hover:border-blue-400 bg-blue-50 hover:bg-blue-100 rounded-lg px-2.5 py-1 transition-colors">
             <IconHistory class="w-3.5 h-3.5" />
-            Veure tot
+            {{ $t('time_tracking.view_all') }}
           </button>
         </div>
       </div>
@@ -95,7 +95,7 @@
       </div>
 
       <div v-else-if="history.length === 0" class="py-10 text-center text-sm text-gray-400">
-        Sense registres en el període seleccionat
+        {{ $t('time_tracking.no_records') }}
       </div>
 
       <div v-else class="divide-y divide-gray-100">
@@ -129,7 +129,7 @@
                   :class="e.effective_minutes < 420 ? 'text-amber-600' : 'text-gray-900'">
               {{ formatDuration(e.effective_minutes) }}
             </span>
-            <span v-else class="text-xs text-gray-300">en curs</span>
+            <span v-else class="text-xs text-gray-300">{{ $t('time_tracking.in_progress') }}</span>
           </div>
           <div class="w-16 text-right flex-shrink-0">
             <span class="text-[10px] font-medium px-2 py-0.5 rounded-full" :class="statusBadge(e.work_status)">
@@ -140,18 +140,18 @@
           <div class="w-14 flex items-center justify-end gap-0.5 flex-shrink-0">
             <span v-if="e.pending_request_type"
                   class="text-[9px] font-medium px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700">
-              Pendent
+              {{ $t('time_tracking.pending_badge') }}
             </span>
             <span v-else-if="e.pending_admin_request"
                   class="text-[9px] font-medium px-1.5 py-0.5 rounded-full bg-purple-50 text-purple-700">
-              Per admin
+              {{ $t('time_tracking.pending_admin_badge') }}
             </span>
             <template v-else>
-              <button @click.stop="openEdit(e)" title="Sol·licitar edició"
+              <button @click.stop="openEdit(e)" :title="$t('time_tracking.request_edit')"
                       class="w-6 h-6 flex items-center justify-center rounded-md text-gray-300 hover:text-amber-600 hover:bg-amber-50 transition-colors opacity-0 group-hover:opacity-100">
                 <IconPencil class="w-3 h-3" />
               </button>
-              <button @click.stop="openDelete(e)" title="Sol·licitar eliminació"
+              <button @click.stop="openDelete(e)" :title="$t('time_tracking.request_delete')"
                       class="w-6 h-6 flex items-center justify-center rounded-md text-gray-300 hover:text-red-600 hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100">
                 <IconTrash class="w-3 h-3" />
               </button>
@@ -161,8 +161,8 @@
       </div>
 
       <div v-if="history.length > 0" class="border-t bg-gray-50 px-5 py-3 flex items-center justify-between text-xs text-gray-500">
-        <span>{{ history.length }} jornades</span>
-        <span>Total efectiu: <span class="font-semibold text-gray-700">{{ formatDuration(totalEffectiveMinutes) }}</span></span>
+        <span>{{ $t('time_tracking.days_count', { n: history.length }) }}</span>
+        <span>{{ $t('time_tracking.total_effective') }}: <span class="font-semibold text-gray-700">{{ formatDuration(totalEffectiveMinutes) }}</span></span>
       </div>
     </div>
 
@@ -170,9 +170,9 @@
     <div v-if="isHrPlus" class="bg-white border border-gray-200 rounded-xl overflow-hidden">
       <div class="px-5 py-3 border-b flex items-center justify-between gap-4">
         <div class="flex items-center gap-3">
-          <h3 class="text-sm font-medium text-gray-700">Empresa — fitxatges</h3>
+          <h3 class="text-sm font-medium text-gray-700">{{ $t('time_tracking.company_entries') }}</h3>
           <span v-if="isToday" class="flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-green-50 text-green-700">
-            <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />En temps real
+            <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />{{ $t('time_tracking.live') }}
           </span>
         </div>
         <div class="flex items-center gap-2">
@@ -198,7 +198,7 @@
         <!-- Empleats amb fitxatge -->
         <div v-if="companyEntries.length === 0 && companyNotClocked.length === 0"
              class="py-10 text-center text-sm text-gray-400">
-          Sense fitxatges per a la data seleccionada
+          {{ $t('time_tracking.no_entries_date') }}
         </div>
 
         <div v-else class="divide-y divide-gray-100">
@@ -247,7 +247,7 @@
               <span v-if="e.effective_minutes != null" class="text-sm font-mono font-medium text-gray-900">
                 {{ formatDuration(e.effective_minutes) }}
               </span>
-              <span v-else class="text-xs text-gray-300">en curs</span>
+              <span v-else class="text-xs text-gray-300">{{ $t('time_tracking.in_progress') }}</span>
             </div>
 
             <!-- Estat -->
@@ -263,22 +263,22 @@
             <div class="w-20 flex items-center justify-end gap-0.5 flex-shrink-0">
               <span v-if="e.pending_admin_request"
                     class="text-[9px] font-medium px-1.5 py-0.5 rounded-full bg-purple-50 text-purple-700 opacity-0 group-hover:opacity-100">
-                Pendent aprob.
+                {{ $t('time_tracking.pending_approval_badge') }}
               </span>
               <template v-else>
                 <button v-if="!e.clock_out_at"
                         @click.stop="doAdminClockOut(e)"
                         :disabled="adminClockingOutId === e.id"
-                        title="Tancar torn"
+                        :title="$t('time_tracking.close_shift')"
                         class="w-6 h-6 flex items-center justify-center rounded-md transition-colors opacity-0 group-hover:opacity-100"
                         :class="adminClockingOutId === e.id ? 'text-gray-200 cursor-not-allowed' : 'text-gray-400 hover:text-green-600 hover:bg-green-50'">
                   <IconLogout class="w-3 h-3" />
                 </button>
-                <button @click.stop="openAdminEdit(e)" title="Sol·licitar modificació"
+                <button @click.stop="openAdminEdit(e)" :title="$t('time_tracking.request_edit')"
                         class="w-6 h-6 flex items-center justify-center rounded-md text-gray-300 hover:text-amber-600 hover:bg-amber-50 transition-colors opacity-0 group-hover:opacity-100">
                   <IconPencil class="w-3 h-3" />
                 </button>
-                <button @click.stop="openAdminDelete(e)" title="Sol·licitar eliminació"
+                <button @click.stop="openAdminDelete(e)" :title="$t('time_tracking.request_delete')"
                         class="w-6 h-6 flex items-center justify-center rounded-md text-gray-300 hover:text-red-600 hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100">
                   <IconTrash class="w-3 h-3" />
                 </button>
@@ -292,7 +292,7 @@
              class="border-t px-5 py-3 bg-amber-50">
           <p class="text-xs font-medium text-amber-700 mb-2">
             <IconAlertTriangle class="w-3.5 h-3.5 inline mr-1" />
-            Sense fitxar avui ({{ companyNotClocked.length }})
+            {{ $t('time_tracking.not_clocked_today') }} ({{ companyNotClocked.length }})
           </p>
           <div class="flex flex-wrap gap-2">
             <span v-for="emp in companyNotClocked" :key="emp.id"
@@ -306,11 +306,11 @@
         <!-- Totals -->
         <div v-if="companyEntries.length > 0"
              class="border-t bg-gray-50 px-5 py-3 flex items-center justify-between text-xs text-gray-500">
-          <span>{{ companyEntries.length }} fitxatges</span>
+          <span>{{ $t('time_tracking.records_count', { n: companyEntries.length }) }}</span>
           <div class="flex items-center gap-4">
-            <span>Actius: <span class="font-semibold text-green-700">{{ companyEntries.filter(e => e.work_status === 'clocked_in').length }}</span></span>
-            <span>En pausa: <span class="font-semibold text-amber-700">{{ companyEntries.filter(e => e.work_status === 'on_break').length }}</span></span>
-            <span>Completats: <span class="font-semibold text-gray-700">{{ companyEntries.filter(e => e.work_status === 'clocked_out').length }}</span></span>
+            <span>{{ $t('time_tracking.active') }}: <span class="font-semibold text-green-700">{{ companyEntries.filter(e => e.work_status === 'clocked_in').length }}</span></span>
+            <span>{{ $t('time_tracking.on_break') }}: <span class="font-semibold text-amber-700">{{ companyEntries.filter(e => e.work_status === 'on_break').length }}</span></span>
+            <span>{{ $t('time_tracking.completed') }}: <span class="font-semibold text-gray-700">{{ companyEntries.filter(e => e.work_status === 'clocked_out').length }}</span></span>
           </div>
         </div>
       </template>
@@ -323,7 +323,7 @@
          @click.self="editModal = false">
       <div class="bg-white rounded-xl shadow-xl w-full max-w-md">
         <div class="flex items-center justify-between px-5 py-4 border-b">
-          <h3 class="font-medium text-gray-900">Sol·licitar modificació</h3>
+          <h3 class="font-medium text-gray-900">{{ $t('time_tracking.request_edit_title') }}</h3>
           <button @click="editModal = false" class="text-gray-400 hover:text-gray-600">
             <IconX class="w-5 h-5" />
           </button>
@@ -334,21 +334,21 @@
             La modificació ha de ser aprovada per un administrador.
           </p>
           <div class="bg-gray-50 rounded-xl p-3 text-xs text-gray-500 space-y-1">
-            <p>Entrada actual: <span class="font-mono font-medium text-gray-700">{{ formatTime(selected.clock_in_at) }}</span></p>
-            <p>Sortida actual: <span class="font-mono font-medium text-gray-700">{{ selected.clock_out_at ? formatTime(selected.clock_out_at) : 'no registrada' }}</span></p>
+            <p>{{ $t('time_tracking.current_entry') }}: <span class="font-mono font-medium text-gray-700">{{ formatTime(selected.clock_in_at) }}</span></p>
+            <p>{{ $t('time_tracking.current_exit') }}: <span class="font-mono font-medium text-gray-700">{{ selected.clock_out_at ? formatTime(selected.clock_out_at) : $t('time_tracking.not_registered') }}</span></p>
           </div>
           <div>
-            <label class="block text-xs font-medium text-gray-600 mb-1">Nova hora d'entrada</label>
+            <label class="block text-xs font-medium text-gray-600 mb-1">{{ $t('time_tracking.new_entry_time') }}</label>
             <input v-model="editForm.clock_in_at" type="datetime-local"
                    class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
           </div>
           <div v-if="selected.clock_out_at">
-            <label class="block text-xs font-medium text-gray-600 mb-1">Nova hora de sortida <span class="text-gray-400">(opcional)</span></label>
+            <label class="block text-xs font-medium text-gray-600 mb-1">{{ $t('time_tracking.new_exit_time') }} <span class="text-gray-400">(opcional)</span></label>
             <input v-model="editForm.clock_out_at" type="datetime-local"
                    class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
           </div>
           <div>
-            <label class="block text-xs font-medium text-gray-600 mb-1">Motiu <span class="text-red-500">*</span></label>
+            <label class="block text-xs font-medium text-gray-600 mb-1">{{ $t('common.reason') }} <span class="text-red-500">*</span></label>
             <textarea v-model="editForm.reason" rows="3" maxlength="500" placeholder="Explica el motiu del canvi..."
                       class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500" />
           </div>
@@ -358,17 +358,17 @@
           <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
             <IconCheck class="w-6 h-6 text-green-600" />
           </div>
-          <p class="text-sm font-medium text-gray-900">Sol·licitud enviada</p>
-          <p class="text-xs text-gray-400">Un administrador la revisarà aviat.</p>
+          <p class="text-sm font-medium text-gray-900">{{ $t('time_tracking.request_sent') }}</p>
+          <p class="text-xs text-gray-400">{{ $t('time_tracking.request_sent_body') }}</p>
         </div>
         <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
           <button @click="editModal = false" class="px-4 py-2 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50">
-            {{ editSuccess ? 'Tancar' : 'Cancel·lar' }}
+            {{ editSuccess ? $t('common.close') : $t('common.cancel') }}
           </button>
           <button v-if="!editSuccess" @click="submitEdit" :disabled="editSaving || !editForm.reason.trim()"
                   class="px-4 py-2 text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white rounded-lg disabled:opacity-60 flex items-center gap-2">
             <svg v-if="editSaving" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/></svg>
-            {{ editSaving ? 'Enviant...' : 'Enviar sol·licitud' }}
+            {{ editSaving ? $t('common.sending') : $t('time_tracking.send_request') }}
           </button>
         </div>
       </div>
@@ -381,7 +381,7 @@
          @click.self="deleteModal = false">
       <div class="bg-white rounded-xl shadow-xl w-full max-w-sm">
         <div class="px-5 py-4 border-b flex items-center justify-between">
-          <h3 class="font-medium text-gray-900">Sol·licitar eliminació</h3>
+          <h3 class="font-medium text-gray-900">{{ $t('time_tracking.request_delete_title') }}</h3>
           <button @click="deleteModal = false" class="text-gray-400 hover:text-gray-600">
             <IconX class="w-5 h-5" />
           </button>
@@ -393,11 +393,11 @@
             Un administrador haurà d'aprovar-ho.
           </p>
           <div class="bg-gray-50 rounded-xl p-3 text-xs text-gray-500 space-y-1">
-            <p>Entrada: <span class="font-mono font-medium text-gray-700">{{ formatTime(selected.clock_in_at) }}</span></p>
-            <p v-if="selected.clock_out_at">Sortida: <span class="font-mono font-medium text-gray-700">{{ formatTime(selected.clock_out_at) }}</span></p>
+            <p>{{ $t('time_tracking.clock_in') }}: <span class="font-mono font-medium text-gray-700">{{ formatTime(selected.clock_in_at) }}</span></p>
+            <p v-if="selected.clock_out_at">{{ $t('time_tracking.clock_out') }}: <span class="font-mono font-medium text-gray-700">{{ formatTime(selected.clock_out_at) }}</span></p>
           </div>
           <div>
-            <label class="block text-xs font-medium text-gray-600 mb-1">Motiu <span class="text-red-500">*</span></label>
+            <label class="block text-xs font-medium text-gray-600 mb-1">{{ $t('common.reason') }} <span class="text-red-500">*</span></label>
             <textarea v-model="deleteReason" rows="3" maxlength="500"
                       class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-red-500" />
           </div>
@@ -407,16 +407,16 @@
           <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
             <IconCheck class="w-6 h-6 text-green-600" />
           </div>
-          <p class="text-sm font-medium text-gray-900">Sol·licitud enviada</p>
+          <p class="text-sm font-medium text-gray-900">{{ $t('time_tracking.request_sent') }}</p>
         </div>
         <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
           <button @click="deleteModal = false" class="px-4 py-2 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50">
-            {{ deleteSuccess ? 'Tancar' : 'Cancel·lar' }}
+            {{ deleteSuccess ? $t('common.close') : $t('common.cancel') }}
           </button>
           <button v-if="!deleteSuccess" @click="submitDelete" :disabled="deleteSaving || !deleteReason.trim()"
                   class="px-4 py-2 text-sm font-medium bg-red-600 hover:bg-red-700 text-white rounded-lg disabled:opacity-60 flex items-center gap-2">
             <svg v-if="deleteSaving" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/></svg>
-            {{ deleteSaving ? 'Enviant...' : 'Sol·licitar eliminació' }}
+            {{ deleteSaving ? $t('common.sending') : $t('time_tracking.request_delete_title') }}
           </button>
         </div>
       </div>
@@ -429,31 +429,31 @@
          @click.self="adminEditModal = false">
       <div class="bg-white rounded-xl shadow-xl w-full max-w-md">
         <div class="flex items-center justify-between px-5 py-4 border-b">
-          <h3 class="font-medium text-gray-900">Sol·licitar modificació de fitxatge</h3>
+          <h3 class="font-medium text-gray-900">{{ $t('time_tracking.request_edit_entry') }}</h3>
           <button @click="adminEditModal = false" class="text-gray-400 hover:text-gray-600"><IconX class="w-5 h-5" /></button>
         </div>
         <div v-if="selected && !adminEditSuccess" class="px-5 py-4 space-y-4">
           <p class="text-xs text-gray-500">
             Fitxatge de <strong>{{ selected.employee?.nom }} {{ selected.employee?.cognoms }}</strong>
             del <strong class="capitalize">{{ formatDateLong(selected.date) }}</strong>.
-            L'empleat haurà d'aprovar el canvi.
+            {{ $t('time_tracking.employee_must_approve_edit') }}
           </p>
           <div class="bg-gray-50 rounded-xl p-3 text-xs text-gray-500 space-y-1">
-            <p>Entrada actual: <span class="font-mono font-medium text-gray-700">{{ formatTime(selected.clock_in_at) }}</span></p>
-            <p>Sortida actual: <span class="font-mono font-medium text-gray-700">{{ selected.clock_out_at ? formatTime(selected.clock_out_at) : 'no registrada' }}</span></p>
+            <p>{{ $t('time_tracking.current_entry') }}: <span class="font-mono font-medium text-gray-700">{{ formatTime(selected.clock_in_at) }}</span></p>
+            <p>{{ $t('time_tracking.current_exit') }}: <span class="font-mono font-medium text-gray-700">{{ selected.clock_out_at ? formatTime(selected.clock_out_at) : $t('time_tracking.not_registered') }}</span></p>
           </div>
           <div>
-            <label class="block text-xs font-medium text-gray-600 mb-1">Nova hora d'entrada</label>
+            <label class="block text-xs font-medium text-gray-600 mb-1">{{ $t('time_tracking.new_entry_time') }}</label>
             <input v-model="adminEditForm.clock_in_at" type="datetime-local"
                    class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
           </div>
           <div v-if="selected.clock_out_at">
-            <label class="block text-xs font-medium text-gray-600 mb-1">Nova hora de sortida</label>
+            <label class="block text-xs font-medium text-gray-600 mb-1">{{ $t('time_tracking.new_exit_time') }}</label>
             <input v-model="adminEditForm.clock_out_at" type="datetime-local"
                    class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
           </div>
           <div>
-            <label class="block text-xs font-medium text-gray-600 mb-1">Motiu <span class="text-red-500">*</span></label>
+            <label class="block text-xs font-medium text-gray-600 mb-1">{{ $t('common.reason') }} <span class="text-red-500">*</span></label>
             <textarea v-model="adminEditForm.reason" rows="3" maxlength="500"
                       class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500" />
           </div>
@@ -461,17 +461,17 @@
         </div>
         <div v-if="adminEditSuccess" class="px-5 py-8 flex flex-col items-center text-center gap-3">
           <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center"><IconCheck class="w-6 h-6 text-green-600" /></div>
-          <p class="text-sm font-medium text-gray-900">Sol·licitud enviada a l'empleat</p>
-          <p class="text-xs text-gray-500">L'empleat rebrà una notificació i haurà d'aprovar el canvi.</p>
+          <p class="text-sm font-medium text-gray-900">{{ $t('time_tracking.request_sent_to_employee') }}</p>
+          <p class="text-xs text-gray-500">{{ $t('time_tracking.employee_will_be_notified_edit') }}</p>
         </div>
         <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
           <button @click="adminEditModal = false" class="px-4 py-2 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50">
-            {{ adminEditSuccess ? 'Tancar' : 'Cancel·lar' }}
+            {{ adminEditSuccess ? $t('common.close') : $t('common.cancel') }}
           </button>
           <button v-if="!adminEditSuccess" @click="submitAdminEdit" :disabled="adminEditSaving || !adminEditForm.reason.trim()"
                   class="px-4 py-2 text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white rounded-lg disabled:opacity-60 flex items-center gap-2">
             <svg v-if="adminEditSaving" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/></svg>
-            {{ adminEditSaving ? 'Enviant...' : 'Enviar sol·licitud' }}
+            {{ adminEditSaving ? $t('common.sending') : $t('time_tracking.send_request') }}
           </button>
         </div>
       </div>
@@ -484,7 +484,7 @@
          @click.self="adminDeleteModal = false">
       <div class="bg-white rounded-xl shadow-xl w-full max-w-sm">
         <div class="px-5 py-4 border-b flex items-center justify-between">
-          <h3 class="font-medium text-gray-900">Sol·licitar eliminació</h3>
+          <h3 class="font-medium text-gray-900">{{ $t('time_tracking.request_delete_title') }}</h3>
           <button @click="adminDeleteModal = false" class="text-gray-400 hover:text-gray-600"><IconX class="w-5 h-5" /></button>
         </div>
         <div v-if="selected && !adminDeleteSuccess" class="px-5 py-4 space-y-3">
@@ -492,14 +492,14 @@
             Sol·licites eliminar el fitxatge de
             <strong class="text-gray-900">{{ selected.employee?.nom }} {{ selected.employee?.cognoms }}</strong>
             del <strong class="capitalize">{{ formatDateLong(selected.date) }}</strong>.
-            L'empleat haurà d'aprovar-ho.
+            {{ $t('time_tracking.employee_must_approve_delete') }}
           </p>
           <div class="bg-gray-50 rounded-xl p-3 text-xs text-gray-500 space-y-1">
-            <p>Entrada: <span class="font-mono font-medium text-gray-700">{{ formatTime(selected.clock_in_at) }}</span></p>
-            <p v-if="selected.clock_out_at">Sortida: <span class="font-mono font-medium text-gray-700">{{ formatTime(selected.clock_out_at) }}</span></p>
+            <p>{{ $t('time_tracking.clock_in') }}: <span class="font-mono font-medium text-gray-700">{{ formatTime(selected.clock_in_at) }}</span></p>
+            <p v-if="selected.clock_out_at">{{ $t('time_tracking.clock_out') }}: <span class="font-mono font-medium text-gray-700">{{ formatTime(selected.clock_out_at) }}</span></p>
           </div>
           <div>
-            <label class="block text-xs font-medium text-gray-600 mb-1">Motiu <span class="text-red-500">*</span></label>
+            <label class="block text-xs font-medium text-gray-600 mb-1">{{ $t('common.reason') }} <span class="text-red-500">*</span></label>
             <textarea v-model="adminDeleteReason" rows="3" maxlength="500"
                       class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-red-500" />
           </div>
@@ -507,17 +507,17 @@
         </div>
         <div v-if="adminDeleteSuccess" class="px-5 py-8 flex flex-col items-center text-center gap-3">
           <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center"><IconCheck class="w-6 h-6 text-green-600" /></div>
-          <p class="text-sm font-medium text-gray-900">Sol·licitud enviada a l'empleat</p>
-          <p class="text-xs text-gray-500">L'empleat rebrà una notificació i haurà d'aprovar-ho.</p>
+          <p class="text-sm font-medium text-gray-900">{{ $t('time_tracking.request_sent_to_employee') }}</p>
+          <p class="text-xs text-gray-500">{{ $t('time_tracking.employee_will_be_notified_delete') }}</p>
         </div>
         <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
           <button @click="adminDeleteModal = false" class="px-4 py-2 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50">
-            {{ adminDeleteSuccess ? 'Tancar' : 'Cancel·lar' }}
+            {{ adminDeleteSuccess ? $t('common.close') : $t('common.cancel') }}
           </button>
           <button v-if="!adminDeleteSuccess" @click="submitAdminDelete" :disabled="adminDeleteSaving || !adminDeleteReason.trim()"
                   class="px-4 py-2 text-sm font-medium bg-red-600 hover:bg-red-700 text-white rounded-lg disabled:opacity-60 flex items-center gap-2">
             <svg v-if="adminDeleteSaving" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/></svg>
-            {{ adminDeleteSaving ? 'Enviant...' : 'Enviar sol·licitud' }}
+            {{ adminDeleteSaving ? $t('common.sending') : $t('time_tracking.send_request') }}
           </button>
         </div>
       </div>
@@ -528,6 +528,7 @@
 <script setup>
 import { ref, watch, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { IconLogin, IconLogout, IconCoffee, IconClock, IconArrowsHorizontal, IconRefresh, IconAlertTriangle, IconHistory, IconPencil, IconTrash, IconX, IconCheck } from '@tabler/icons-vue'
 import { useAuthStore } from '../stores/auth'
 import TimeTrackingWidget from '../components/TimeTrackingWidget.vue'
@@ -535,6 +536,9 @@ import { useTimeTracking } from '../composables/useTimeTracking'
 import api from '../services/api'
 
 const router = useRouter()
+const { t, locale } = useI18n()
+
+const dateLocale = computed(() => ({ ca: 'ca-ES', es: 'es-ES', en: 'en-GB' }[locale.value] || 'ca-ES'))
 
 const auth = useAuthStore()
 const { shift, load: loadToday, loadHistory, loadCompanyEntries } = useTimeTracking()
@@ -654,7 +658,7 @@ async function submitAdminEdit() {
     if (e) e.pending_admin_request = { type: 'edit' }
     adminEditSuccess.value = true
   } catch (err) {
-    adminEditError.value = err?.response?.data?.message || 'Error en enviar la sol·licitud.'
+    adminEditError.value = err?.response?.data?.message || t('common.error')
   } finally { adminEditSaving.value = false }
 }
 
@@ -674,7 +678,7 @@ async function submitAdminDelete() {
     if (e) e.pending_admin_request = { type: 'delete' }
     adminDeleteSuccess.value = true
   } catch (err) {
-    adminDeleteError.value = err?.response?.data?.message || 'Error en enviar la sol·licitud.'
+    adminDeleteError.value = err?.response?.data?.message || t('common.error')
   } finally { adminDeleteSaving.value = false }
 }
 
@@ -692,7 +696,7 @@ function toDatetimeLocal(iso) {
 
 function formatDateLong(d) {
   if (!d) return '—'
-  return new Date(d).toLocaleDateString('ca-ES', { weekday: 'long', day: 'numeric', month: 'long' })
+  return new Date(d).toLocaleDateString(dateLocale.value, { weekday: 'long', day: 'numeric', month: 'long' })
 }
 
 function openEdit(e) {
@@ -722,7 +726,7 @@ async function submitEdit() {
     const entry = history.value.find(e => e.id === selected.value.id)
     if (entry) entry.pending_request_type = 'edit'
   } catch (err) {
-    editError.value = err?.response?.data?.message || 'Error en enviar la sol·licitud.'
+    editError.value = err?.response?.data?.message || t('common.error')
   } finally { editSaving.value = false }
 }
 
@@ -734,7 +738,7 @@ async function submitDelete() {
     const entry = history.value.find(e => e.id === selected.value.id)
     if (entry) entry.pending_request_type = 'delete'
   } catch (err) {
-    deleteError.value = err?.response?.data?.message || 'Error en enviar la sol·licitud.'
+    deleteError.value = err?.response?.data?.message || t('common.error')
   } finally { deleteSaving.value = false }
 }
 
@@ -759,7 +763,7 @@ const totalEffectiveMinutes = computed(() =>
 
 function formatTime(iso) {
   if (!iso) return '—'
-  return new Date(iso).toLocaleTimeString('ca-ES', { hour: '2-digit', minute: '2-digit' })
+  return new Date(iso).toLocaleTimeString(dateLocale.value, { hour: '2-digit', minute: '2-digit' })
 }
 
 function formatTimeWithDay(iso) {
@@ -769,9 +773,9 @@ function formatTimeWithDay(iso) {
   const isToday = d.getFullYear() === now.getFullYear() &&
                   d.getMonth()    === now.getMonth()    &&
                   d.getDate()     === now.getDate()
-  const time = d.toLocaleTimeString('ca-ES', { hour: '2-digit', minute: '2-digit' })
+  const time = d.toLocaleTimeString(dateLocale.value, { hour: '2-digit', minute: '2-digit' })
   if (isToday) return time
-  return d.toLocaleDateString('ca-ES', { weekday: 'short', day: 'numeric', month: 'short' }) + ' ' + time
+  return d.toLocaleDateString(dateLocale.value, { weekday: 'short', day: 'numeric', month: 'short' }) + ' ' + time
 }
 
 function dayDiff(outIso, inIso) {
@@ -785,7 +789,7 @@ function dayDiff(outIso, inIso) {
 
 function formatDate(d) {
   if (!d) return '—'
-  return new Date(d).toLocaleDateString('ca-ES', { weekday: 'short', day: 'numeric', month: 'short' })
+  return new Date(d).toLocaleDateString(dateLocale.value, { weekday: 'short', day: 'numeric', month: 'short' })
 }
 
 function formatDuration(minutes) {
@@ -804,7 +808,12 @@ function statusBadge(s) {
 }
 
 function statusLabel(s) {
-  return { clocked_in: 'Treballant', on_break: 'En pausa', clocked_out: 'Completat' }[s] || '—'
+  return { clocked_in: t('time_tracking.working'), on_break: t('time_tracking.on_break'), clocked_out: t('time_tracking.completed') }[s] || '—'
+}
+
+function dayAbbr(d) {
+  const keys = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
+  return t('days.' + (keys[d - 1] || 'mon'))
 }
 
 const AVATAR_COLORS = ['#3B82F6','#10B981','#F59E0B','#EF4444','#8B5CF6','#EC4899','#14B8A6','#F97316']

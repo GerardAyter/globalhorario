@@ -1,6 +1,7 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 import api from '../services/api'
+import { setLocale } from '../i18n'
 
 export const useAuthStore = defineStore('auth', () => {
   const token     = ref(localStorage.getItem('token') || '')
@@ -22,6 +23,7 @@ export const useAuthStore = defineStore('auth', () => {
   function _persistUser(u) {
     user.value = u
     sessionStorage.setItem('user', JSON.stringify(u))
+    setLocale(u?.locale)
   }
 
   async function login(credentials) {

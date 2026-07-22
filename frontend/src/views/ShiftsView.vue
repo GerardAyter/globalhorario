@@ -3,8 +3,8 @@
     <!-- Capçalera -->
     <div class="flex items-center justify-between mb-5">
       <div>
-        <h2 class="text-base font-medium text-gray-900">Torns</h2>
-        <p class="text-sm text-gray-400 mt-0.5">{{ shifts.length }} torns configurats</p>
+        <h2 class="text-base font-medium text-gray-900">{{ $t('shifts.title') }}</h2>
+        <p class="text-sm text-gray-400 mt-0.5">{{ $t('shifts.count', { n: shifts.length }) }}</p>
       </div>
       <div class="flex items-center gap-2">
         <!-- Toggle vista -->
@@ -12,16 +12,16 @@
           <button @click="viewMode = 'list'"
                   class="px-3 py-1.5 text-sm flex items-center gap-1.5 transition-colors"
                   :class="viewMode === 'list' ? 'bg-blue-600 text-white' : 'bg-white text-gray-500 hover:bg-gray-50'">
-            <IconList class="w-4 h-4" />Llista
+            <IconList class="w-4 h-4" />{{ $t('shifts.list') }}
           </button>
           <button @click="viewMode = 'calendar'"
                   class="px-3 py-1.5 text-sm flex items-center gap-1.5 transition-colors border-l border-gray-200"
                   :class="viewMode === 'calendar' ? 'bg-blue-600 text-white' : 'bg-white text-gray-500 hover:bg-gray-50'">
-            <IconCalendar class="w-4 h-4" />Calendari
+            <IconCalendar class="w-4 h-4" />{{ $t('shifts.calendar') }}
           </button>
         </div>
         <button @click="openCreate" class="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-3 py-1.5 rounded-lg transition-colors">
-          <IconPlus class="w-4 h-4" />Nou torn
+          <IconPlus class="w-4 h-4" />{{ $t('shifts.new') }}
         </button>
       </div>
     </div>
@@ -46,13 +46,13 @@
       <div v-else-if="error" class="flex flex-col items-center justify-center py-16 text-center">
         <IconAlertTriangle class="w-8 h-8 text-red-400 mb-2" />
         <p class="text-sm text-red-600">{{ error }}</p>
-        <button @click="load()" class="mt-3 text-xs text-blue-600 hover:underline">Tornar a intentar</button>
+        <button @click="load()" class="mt-3 text-xs text-blue-600 hover:underline">{{ $t('common.retry') }}</button>
       </div>
 
       <div v-else-if="shifts.length === 0" class="flex flex-col items-center justify-center py-16 text-center">
         <IconClock class="w-10 h-10 text-gray-300 mb-3" />
-        <p class="text-sm text-gray-500">Encara no hi ha torns configurats</p>
-        <button @click="openCreate" class="mt-3 text-sm text-blue-600 hover:underline">Crea el primer torn</button>
+        <p class="text-sm text-gray-500">{{ $t('shifts.empty') }}</p>
+        <button @click="openCreate" class="mt-3 text-sm text-blue-600 hover:underline">{{ $t('shifts.create_first') }}</button>
       </div>
 
       <div v-else class="divide-y divide-gray-100">
@@ -62,7 +62,7 @@
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-2 flex-wrap">
               <span class="font-medium text-gray-900 text-sm">{{ s.name }}</span>
-              <span v-if="!s.active" class="text-[10px] font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-400">Inactiu</span>
+              <span v-if="!s.active" class="text-[10px] font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-400">{{ $t('shifts.inactive') }}</span>
             </div>
             <div class="flex items-center gap-3 mt-1 flex-wrap">
               <div class="flex gap-0.5">
@@ -76,7 +76,7 @@
                 <IconClock class="w-3 h-3" />{{ s.start_time.substring(0,5) }}
               </span>
               <span v-if="s.total_hours" class="text-xs text-gray-500">{{ formatHours(s.total_hours) }}</span>
-              <span v-if="s.flexible_entry" class="text-[10px] font-medium px-2 py-0.5 rounded-full bg-amber-50 text-amber-700">Entrada flexible</span>
+              <span v-if="s.flexible_entry" class="text-[10px] font-medium px-2 py-0.5 rounded-full bg-amber-50 text-amber-700">{{ $t('shifts.flexible') }}</span>
               <span v-if="s.break_duration" class="text-xs text-gray-500 flex items-center gap-1">
                 <IconCoffee class="w-3 h-3" />{{ s.break_duration }} min
               </span>
@@ -84,10 +84,10 @@
           </div>
 
           <div class="flex items-center gap-1 flex-shrink-0">
-            <button @click="openEdit(s)" class="w-7 h-7 flex items-center justify-center rounded text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors" title="Editar">
+            <button @click="openEdit(s)" class="w-7 h-7 flex items-center justify-center rounded text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors" :title="$t('common.edit')">
               <IconEdit class="w-4 h-4" />
             </button>
-            <button @click="askDelete(s)" class="w-7 h-7 flex items-center justify-center rounded text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors" title="Eliminar">
+            <button @click="askDelete(s)" class="w-7 h-7 flex items-center justify-center rounded text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors" :title="$t('common.delete')">
               <IconTrash class="w-4 h-4" />
             </button>
           </div>
@@ -165,7 +165,7 @@
         <!-- Nota torns sense horari -->
         <div v-if="shiftsWithoutTime.length" class="border-t px-5 py-3 bg-amber-50">
           <p class="text-xs text-amber-700">
-            <span class="font-medium">Torns sense horari assignat (no es mostren al calendari):</span>
+            <span class="font-medium">{{ $t('shifts.unassigned_note') }}</span>
             {{ shiftsWithoutTime.map(s => s.name).join(', ') }}
           </p>
         </div>
@@ -177,32 +177,32 @@
       <div v-if="modal.open" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" @click.self="closeModal">
         <div class="bg-white rounded-xl shadow-xl w-full max-w-xl max-h-[90vh] flex flex-col">
           <div class="flex items-center justify-between px-6 py-4 border-b flex-shrink-0">
-            <h3 class="font-medium text-gray-900">{{ modal.isEdit ? 'Editar torn' : 'Nou torn' }}</h3>
+            <h3 class="font-medium text-gray-900">{{ modal.isEdit ? $t('shifts.edit_title') : $t('shifts.new_title') }}</h3>
             <button @click="closeModal" class="text-gray-400 hover:text-gray-600"><IconX class="w-5 h-5" /></button>
           </div>
 
           <form @submit.prevent="submitModal" class="overflow-y-auto flex-1 px-6 py-5 space-y-6">
             <!-- General -->
             <div>
-              <p class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3">General</p>
+              <p class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3">{{ $t('shifts.general') }}</p>
               <div class="space-y-3">
                 <div class="grid grid-cols-[1fr_auto] gap-3 items-end">
                   <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1">Nom <span class="text-red-500">*</span></label>
-                    <input v-model="form.name" type="text" placeholder="Ex: Torn de matí"
+                    <label class="block text-xs font-medium text-gray-600 mb-1">{{ $t('shifts.name_label') }}</label>
+                    <input v-model="form.name" type="text" :placeholder="$t('shifts.name_placeholder')"
                            class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                            :class="formErrors.name ? 'border-red-400' : 'border-gray-200'" />
                     <p v-if="formErrors.name" class="text-xs text-red-600 mt-1">{{ formErrors.name[0] }}</p>
                   </div>
                   <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1">Color</label>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">{{ $t('shifts.color_label') }}</label>
                     <input v-model="form.color" type="color"
                            class="w-10 h-9 rounded-lg border border-gray-200 cursor-pointer p-0.5" />
                   </div>
                 </div>
 
                 <div>
-                  <label class="block text-xs font-medium text-gray-600 mb-2">Dies de la setmana</label>
+                  <label class="block text-xs font-medium text-gray-600 mb-2">{{ $t('shifts.weekdays_label') }}</label>
                   <div class="flex gap-1.5 flex-wrap">
                     <button v-for="(label, day) in DAY_FULL" :key="day" type="button"
                             @click="toggleDay(day)"
@@ -221,23 +221,23 @@
                     <div class="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all"
                          :class="form.active ? 'left-4' : 'left-0.5'" />
                   </div>
-                  <span class="text-sm text-gray-700">Torn actiu</span>
+                  <span class="text-sm text-gray-700">{{ $t('shifts.active_label') }}</span>
                 </label>
               </div>
             </div>
 
             <!-- Horari -->
             <div class="border-t pt-5">
-              <p class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3">Horari</p>
+              <p class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3">{{ $t('shifts.schedule') }}</p>
               <div class="space-y-4">
                 <div class="grid grid-cols-2 gap-3">
                   <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1">Hora d'inici</label>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">{{ $t('shifts.start_label') }}</label>
                     <input v-model="form.start_time" type="time"
                            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
                   </div>
                   <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1">Durada</label>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">{{ $t('shifts.duration_label') }}</label>
                     <div class="relative">
                       <input v-model.number="form.total_hours" type="number" min="0" max="24" step="0.5" placeholder="8"
                              class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500" />
@@ -254,20 +254,20 @@
                            :class="form.flexible_entry ? 'left-4' : 'left-0.5'" />
                     </div>
                     <div>
-                      <span class="text-sm font-medium text-gray-700">Entrada flexible</span>
-                      <p class="text-xs text-gray-400">Permet fitxar dins d'un rang horari</p>
+                      <span class="text-sm font-medium text-gray-700">{{ $t('shifts.flexible') }}</span>
+                      <p class="text-xs text-gray-400">{{ $t('shifts.flexible_desc') }}</p>
                     </div>
                   </label>
                   <div v-if="form.flexible_entry" class="grid grid-cols-2 gap-3 pt-1">
                     <div>
-                      <label class="block text-xs font-medium text-gray-600 mb-1">Hora mínima d'entrada <span class="text-red-500">*</span></label>
+                      <label class="block text-xs font-medium text-gray-600 mb-1">{{ $t('shifts.flexible_start_min') }}</label>
                       <input v-model="form.flex_entry_from" type="time"
                              class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                              :class="formErrors.flex_entry_from ? 'border-red-400' : 'border-gray-200'" />
                       <p v-if="formErrors.flex_entry_from" class="text-xs text-red-600 mt-1">{{ formErrors.flex_entry_from[0] }}</p>
                     </div>
                     <div>
-                      <label class="block text-xs font-medium text-gray-600 mb-1">Hora màxima d'entrada <span class="text-red-500">*</span></label>
+                      <label class="block text-xs font-medium text-gray-600 mb-1">{{ $t('shifts.flexible_start_max') }}</label>
                       <input v-model="form.flex_entry_to" type="time"
                              class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                              :class="formErrors.flex_entry_to ? 'border-red-400' : 'border-gray-200'" />
@@ -280,16 +280,16 @@
 
             <!-- Pausa -->
             <div class="border-t pt-5">
-              <p class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3">Pausa</p>
+              <p class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3">{{ $t('shifts.break') }}</p>
               <div class="space-y-4">
                 <div>
-                  <label class="block text-xs font-medium text-gray-600 mb-1">Durada de la pausa</label>
+                  <label class="block text-xs font-medium text-gray-600 mb-1">{{ $t('shifts.break_duration_label') }}</label>
                   <div class="relative w-40">
                     <input v-model.number="form.break_duration" type="number" min="0" max="240" step="5" placeholder="0"
                            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm pr-12 focus:outline-none focus:ring-2 focus:ring-blue-500" />
                     <span class="absolute right-3 top-2 text-xs text-gray-400">min</span>
                   </div>
-                  <p class="text-xs text-gray-400 mt-1">Deixa en 0 si no hi ha pausa obligatòria</p>
+                  <p class="text-xs text-gray-400 mt-1">{{ $t('shifts.break_hint') }}</p>
                 </div>
                 <div v-if="form.break_duration > 0" class="bg-gray-50 rounded-xl p-4 space-y-3">
                   <label class="flex items-center gap-2.5 cursor-pointer select-none">
@@ -299,18 +299,18 @@
                            :class="form.break_window ? 'left-4' : 'left-0.5'" />
                     </div>
                     <div>
-                      <span class="text-sm font-medium text-gray-700">Definir finestra de pausa</span>
-                      <p class="text-xs text-gray-400">La pausa s'ha de realitzar dins d'un rang horari</p>
+                      <span class="text-sm font-medium text-gray-700">{{ $t('shifts.break_window_label') }}</span>
+                      <p class="text-xs text-gray-400">{{ $t('shifts.break_window_desc') }}</p>
                     </div>
                   </label>
                   <div v-if="form.break_window" class="grid grid-cols-2 gap-3 pt-1">
                     <div>
-                      <label class="block text-xs font-medium text-gray-600 mb-1">Pausa no abans de</label>
+                      <label class="block text-xs font-medium text-gray-600 mb-1">{{ $t('shifts.break_from_label') }}</label>
                       <input v-model="form.break_from" type="time"
                              class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
                     </div>
                     <div>
-                      <label class="block text-xs font-medium text-gray-600 mb-1">Pausa no més tard de</label>
+                      <label class="block text-xs font-medium text-gray-600 mb-1">{{ $t('shifts.break_to_label') }}</label>
                       <input v-model="form.break_to" type="time"
                              class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
                     </div>
@@ -323,7 +323,7 @@
 
             <div class="flex items-center justify-end gap-2 pt-1 border-t">
               <button type="button" @click="closeModal" class="px-4 py-2 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                Cancel·lar
+                {{ $t('common.cancel') }}
               </button>
               <button type="submit" :disabled="saving"
                       class="px-4 py-2 text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white rounded-lg disabled:opacity-60 flex items-center gap-2 transition-colors">
@@ -331,7 +331,7 @@
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
                   <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
                 </svg>
-                {{ saving ? 'Desant...' : (modal.isEdit ? 'Desar canvis' : 'Crear torn') }}
+                {{ saving ? $t('common.saving') : (modal.isEdit ? $t('common.save') : $t('shifts.create_btn')) }}
               </button>
             </div>
           </form>
@@ -348,17 +348,17 @@
               <IconAlertTriangle class="w-5 h-5 text-red-600" />
             </div>
             <div>
-              <p class="font-medium text-gray-900">Eliminar torn</p>
+              <p class="font-medium text-gray-900">{{ $t('shifts.delete_title') }}</p>
               <p class="text-sm text-gray-500 mt-1">
-                Estàs a punt d'eliminar el torn <strong class="text-gray-800">{{ deleteTarget.name }}</strong>.
-                Les assignacions existents perdran la referència a aquest torn.
+                {{ $t('shifts.delete_desc', { name: deleteTarget.name }) }}
+                {{ $t('shifts.delete_warning') }}
               </p>
             </div>
           </div>
           <div class="flex gap-2 justify-end">
-            <button @click="deleteTarget = null" class="px-4 py-2 text-sm border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors">Cancel·lar</button>
+            <button @click="deleteTarget = null" class="px-4 py-2 text-sm border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors">{{ $t('common.cancel') }}</button>
             <button @click="confirmDelete" :disabled="deleting" class="px-4 py-2 text-sm font-medium bg-red-600 hover:bg-red-700 text-white rounded-lg disabled:opacity-60 transition-colors">
-              {{ deleting ? 'Eliminant...' : 'Eliminar' }}
+              {{ deleting ? $t('common.deleting') : $t('common.delete') }}
             </button>
           </div>
         </div>
@@ -369,18 +369,37 @@
 
 <script setup>
 import { ref, reactive, computed, watch, nextTick, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { IconPlus, IconEdit, IconTrash, IconX, IconClock, IconCoffee, IconAlertTriangle, IconList, IconCalendar } from '@tabler/icons-vue'
 import { useShifts } from '../composables/useShifts'
 
 const { shifts, loading, saving, error, load, create, update, remove } = useShifts()
+const { locale, t } = useI18n()
 
 // ── Constants ────────────────────────────────────────────────────────────────
 const HOUR_H  = 56                // px per hora
 const TOTAL_H = 24 * HOUR_H      // 1344 px
 
-const DAY_LABELS    = { 1: 'DL', 2: 'DM', 3: 'DC', 4: 'DJ', 5: 'DV', 6: 'DS', 7: 'DG' }
-const DAY_FULL      = { 1: 'Dilluns', 2: 'Dimarts', 3: 'Dimecres', 4: 'Dijous', 5: 'Divendres', 6: 'Dissabte', 7: 'Diumenge' }
-const DAY_FULL_SHORT = { 1: 'Dilluns', 2: 'Dimarts', 3: 'Dimecres', 4: 'Dijous', 5: 'Divendres', 6: 'Dissabte', 7: 'Diumenge' }
+const dateLocale = computed(() => ({ ca: 'ca-ES', es: 'es-ES', en: 'en-GB' }[locale.value] || 'ca-ES'))
+const DAY_LABELS = computed(() => ({
+  1: new Intl.DateTimeFormat(dateLocale.value, { weekday: 'short' }).format(new Date(2024, 0, 1)),
+  2: new Intl.DateTimeFormat(dateLocale.value, { weekday: 'short' }).format(new Date(2024, 0, 2)),
+  3: new Intl.DateTimeFormat(dateLocale.value, { weekday: 'short' }).format(new Date(2024, 0, 3)),
+  4: new Intl.DateTimeFormat(dateLocale.value, { weekday: 'short' }).format(new Date(2024, 0, 4)),
+  5: new Intl.DateTimeFormat(dateLocale.value, { weekday: 'short' }).format(new Date(2024, 0, 5)),
+  6: new Intl.DateTimeFormat(dateLocale.value, { weekday: 'short' }).format(new Date(2024, 0, 6)),
+  7: new Intl.DateTimeFormat(dateLocale.value, { weekday: 'short' }).format(new Date(2024, 0, 7)),
+}))
+const DAY_FULL = computed(() => ({
+  1: new Intl.DateTimeFormat(dateLocale.value, { weekday: 'long' }).format(new Date(2024, 0, 1)),
+  2: new Intl.DateTimeFormat(dateLocale.value, { weekday: 'long' }).format(new Date(2024, 0, 2)),
+  3: new Intl.DateTimeFormat(dateLocale.value, { weekday: 'long' }).format(new Date(2024, 0, 3)),
+  4: new Intl.DateTimeFormat(dateLocale.value, { weekday: 'long' }).format(new Date(2024, 0, 4)),
+  5: new Intl.DateTimeFormat(dateLocale.value, { weekday: 'long' }).format(new Date(2024, 0, 5)),
+  6: new Intl.DateTimeFormat(dateLocale.value, { weekday: 'long' }).format(new Date(2024, 0, 6)),
+  7: new Intl.DateTimeFormat(dateLocale.value, { weekday: 'long' }).format(new Date(2024, 0, 7)),
+}))
+const DAY_FULL_SHORT = DAY_LABELS
 
 // ── Vista ────────────────────────────────────────────────────────────────────
 const viewMode       = ref('list')
@@ -512,7 +531,7 @@ async function submitModal() {
   formError.value  = ''
   const result = modal.isEdit ? await update(modal.editId, form) : await create(form)
   if (result.ok) { closeModal(); load() }
-  else { formErrors.value = result.errors || {}; formError.value = result.message || 'Error en desar.' }
+  else { formErrors.value = result.errors || {}; formError.value = result.message || t('common.error_saving') }
 }
 
 // ── Eliminar ─────────────────────────────────────────────────────────────────

@@ -19,6 +19,7 @@ const routes = [
       { path: 'admin/time-entries', name: 'admin-time-entries', component: () => import('../views/AdminTimeEntriesView.vue'), meta: { minRole: 'hr' } },
       { path: 'shifts',       name: 'shifts',       component: () => import('../views/ShiftsView.vue'),       meta: { minRole: 'admin'      } },
       { path: 'absences',     name: 'absences',     component: () => import('../views/AbsencesView.vue'),    meta: { minRole: 'user'       } },
+      { path: 'documents',    name: 'documents',    component: () => import('../views/DocumentsView.vue'),   meta: { minRole: 'user'       } },
       { path: 'payrolls',     name: 'payrolls',     component: () => import('../views/PlaceholderView.vue'),  meta: { minRole: 'admin'      } },
       { path: 'reports',      name: 'reports',      component: () => import('../views/PlaceholderView.vue') },
       { path: 'settings',     name: 'settings',     component: () => import('../views/PlaceholderView.vue'),  meta: { minRole: 'admin'      } },

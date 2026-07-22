@@ -28,7 +28,7 @@ class User extends Authenticatable
         self::ROLE_FOUNDER    => 4,
     ];
 
-    protected $fillable = ['name', 'email', 'password', 'role', 'tenant_id', 'company_id'];
+    protected $fillable = ['name', 'email', 'password', 'role', 'tenant_id', 'company_id', 'locale'];
     protected $hidden   = ['password', 'remember_token'];
 
     protected function casts(): array

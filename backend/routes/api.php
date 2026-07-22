@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\HolidayController;
 use App\Http\Controllers\Api\ConveniController;
 use App\Http\Controllers\Api\TimeEntryEditRequestController;
+use App\Http\Controllers\Api\DocumentController;
 
 // ── Públic ──────────────────────────────────────────────────────────────────
 Route::post('auth/login',        [AuthController::class, 'login']);
@@ -91,6 +92,8 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::post('absence-requests/{id}/deny', [AbsenceRequestController::class, 'deny']);
             Route::apiResource('vacation-balances', VacationBalanceController::class)->except(['index']);
             Route::post('overtimes/{id}/approve', [\App\Http\Controllers\Api\OvertimeController::class, 'approve']);
+            Route::post('documents', [DocumentController::class, 'store']);
+            Route::delete('documents/{id}', [DocumentController::class, 'destroy']);
         });
 
         // ── User+ ───────────────────────────────────────────────────────────
@@ -115,6 +118,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // Festius (lectura per a tots els usuaris)
         Route::get('holidays', [HolidayController::class, 'index']);
+
+        // Documents (lectura i descàrrega per a tots els usuaris autenticats)
+        Route::get('documents',                [DocumentController::class, 'index']);
+        Route::get('documents/{id}/download',  [DocumentController::class, 'download']);
 
         // Notificacions
         Route::get('notifications/my',          [NotificationController::class, 'my']);
