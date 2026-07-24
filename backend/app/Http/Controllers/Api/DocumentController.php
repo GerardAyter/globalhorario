@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Models\Document;
 use App\Models\Employee;
+use App\Models\User;
 use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -96,6 +97,62 @@ class DocumentController extends BaseController
         }
 
         return $this->success($documents, 'Document enviat correctament', null, 201);
+    }
+
+    /** Pujar un document propi (User+): només Justificant mèdic o Altres */
+    public function storeSelf(Request $request)
+    {
+        $user     = $request->user();
+        $employee = $user->employee;
+
+        if (! $employee) {
+            return $this->error('No tens un registre d\'empleat associat', null, 422);
+        }
+
+        $data = $request->validate([
+            'title'       => 'required|string|max:150',
+            'description' => 'nullable|string|max:2000',
+            'type'        => 'required|in:' . Document::TYPE_MEDICAL_CERTIFICATE . ',' . Document::TYPE_OTHER,
+            'file'        => 'required|file|max:10240|mimes:pdf,jpg,jpeg,png,doc,docx',
+        ]);
+
+        $file     = $request->file('file');
+        $filePath = $file->store("documents/{$employee->company_id}", 'local');
+
+        $document = Document::create([
+            'company_id'  => $employee->company_id,
+            'employee_id' => $employee->id,
+            'uploaded_by' => $user->id,
+            'title'       => $data['title'],
+            'description' => $data['description'] ?? null,
+            'type'        => $data['type'],
+            'file_path'   => $filePath,
+            'file_name'   => $file->getClientOriginalName(),
+            'file_size'   => $file->getSize(),
+            'mime_type'   => $file->getClientMimeType(),
+            'read_at'     => now(),
+        ]);
+
+        $adminName = trim($employee->nom . ' ' . $employee->cognoms);
+        foreach ($this->companyAdmins($employee->company_id) as $admin) {
+            $this->notifications->send(
+                $admin->id,
+                'document',
+                'Nou document de ' . $adminName,
+                'S\'ha pujat un nou document: ' . $data['title'],
+                ['document_id' => $document->id]
+            );
+        }
+
+        return $this->success($document, 'Document enviat correctament', null, 201);
+    }
+
+    /** Usuaris amb rol HR+ d'una empresa (per notificar-los) */
+    private function companyAdmins(int $companyId)
+    {
+        return User::where('company_id', $companyId)
+            ->whereIn('role', [User::ROLE_HR, User::ROLE_ADMIN, User::ROLE_SUPERADMIN])
+            ->get();
     }
 
     /** Descarregar un document (propietari o HR+ de la mateixa empresa) */

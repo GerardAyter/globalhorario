@@ -8,9 +8,11 @@ use App\Models\User;
 use App\Services\CompanyService;
 use App\Http\Requests\CompanyStoreRequest;
 use App\Http\Requests\CompanyUpdateRequest;
+use App\Models\Company;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 
 class CompanyController extends BaseController
 {
@@ -152,6 +154,62 @@ class CompanyController extends BaseController
             $this->service->findWithRelations($company->id),
             'Company updated'
         );
+    }
+
+    /** Perfil de l'empresa pròpia (Admin+) */
+    public function my(Request $request)
+    {
+        $company = $this->resolveOwnCompany($request);
+        if (! $company) {
+            return $this->error("No s'ha trobat l'empresa", null, 404);
+        }
+        return $this->success($company);
+    }
+
+    /** Actualitzar l'empresa pròpia (Admin+, camps de perfil únicament) */
+    public function updateMy(Request $request)
+    {
+        $company = $this->resolveOwnCompany($request);
+        if (! $company) {
+            return $this->error("No s'ha trobat l'empresa", null, 404);
+        }
+
+        $validated = $request->validate([
+            'name'                 => 'required|string|max:255',
+            'nom_legal'            => ['nullable', 'string', 'max:255', Rule::unique('companies', 'nom_legal')->ignore($company->id)],
+            'tax_id'               => ['nullable', 'string', 'max:100', Rule::unique('companies', 'tax_id')->ignore($company->id)],
+            'adreca_facturacio'    => 'nullable|string|max:500',
+            'telefon'              => 'nullable|string|max:30',
+            'email_contacte'       => 'nullable|email|max:255',
+            'persona_contacte'     => 'nullable|string|max:255',
+            'timezone'             => 'nullable|string|max:100',
+            'country'              => 'nullable|string|max:100',
+            'collective_agreement' => 'nullable|string|max:255',
+            'logo_base64'          => 'nullable|string',
+            'favicon_base64'       => 'nullable|string',
+        ]);
+
+        $logoBase64    = $validated['logo_base64']    ?? null;
+        $faviconBase64 = $validated['favicon_base64'] ?? null;
+        unset($validated['logo_base64'], $validated['favicon_base64']);
+
+        $this->service->update($company, $validated);
+
+        $logoUrl    = $logoBase64    ? $this->saveImage($company->id, $logoBase64,    'company-logos',    'logo')    : null;
+        $faviconUrl = $faviconBase64 ? $this->saveImage($company->id, $faviconBase64, 'company-favicons', 'favicon') : null;
+
+        $updates = array_filter(['logo_url' => $logoUrl, 'favicon_url' => $faviconUrl]);
+        if ($updates) $company->update($updates);
+
+        return $this->success($this->service->find($company->id), 'Empresa actualitzada');
+    }
+
+    private function resolveOwnCompany(Request $request): ?Company
+    {
+        $user      = $request->user();
+        $companyId = $user->company_id ?? $user->employee?->company_id;
+        if (! $companyId) return null;
+        return $this->service->find($companyId);
     }
 
     public function destroy(int $id)

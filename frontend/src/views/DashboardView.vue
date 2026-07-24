@@ -164,11 +164,11 @@
     <template v-if="isManagement">
       <div v-if="error" class="bg-red-50 text-red-700 rounded-lg p-3 mb-4 text-sm">{{ $t('dashboard.error') }}</div>
 
-      <div class="grid grid-cols-4 gap-3 mb-4">
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
         <KpiCard v-for="k in kpis" :key="k.label" :label="k.label" :value="k.valueDisplay" :trend="k.trend" />
       </div>
 
-      <div class="grid" style="grid-template-columns: 3fr 2fr; gap: 1rem;">
+      <div class="grid grid-cols-1 sm:grid-cols-[3fr_2fr] gap-4">
         <div class="bg-white border border-gray-200 rounded-xl p-4">
           <div class="flex items-center justify-between mb-3">
             <h3 class="font-medium text-sm">{{ $t('dashboard.latest_absences') }}</h3>

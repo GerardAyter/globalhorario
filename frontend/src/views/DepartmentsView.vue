@@ -3,7 +3,7 @@
     <div class="flex items-center justify-between mb-5">
       <div>
         <h2 class="text-base font-medium text-gray-900">{{ $t('departments.title') }}</h2>
-        <p class="text-sm text-gray-400 mt-0.5">{{ $t('departments.count', { n: pagination.total }) }}</p>
+        <p class="text-sm text-gray-400 mt-0.5">{{ $t(pagination.total === 1 ? 'departments.count_one' : 'departments.count_other', { n: pagination.total }) }}</p>
       </div>
       <button @click="openCreate" class="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-3 py-1.5 rounded-lg transition-colors">
         <IconPlus class="w-4 h-4" />{{ $t('departments.new') }}
@@ -43,9 +43,6 @@
       <!-- Llista -->
       <div v-else class="divide-y divide-gray-100">
         <div v-for="d in departments" :key="d.id" class="flex items-center gap-4 px-5 py-4 hover:bg-gray-50 transition-colors">
-          <!-- #ID -->
-          <div class="w-8 text-xs text-gray-400 font-mono flex-shrink-0 text-right">#{{ d.id }}</div>
-
           <!-- Icona -->
           <div class="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
             <IconSitemap class="w-4 h-4 text-blue-600" />

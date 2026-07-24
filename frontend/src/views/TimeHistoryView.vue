@@ -1073,11 +1073,11 @@ function toDatetimeLocal(iso) {
 }
 
 // Converteix el valor d'un input datetime-local (hora local del navegador)
-// a un string ISO UTC (YYYY-MM-DDTHH:mm) per enviar al backend.
+// a un string ISO UTC complet (amb marcador Z) per enviar al backend.
 // new Date('2026-06-30T09:42') → interpreta com hora local → .toISOString() → UTC
 function localToUtc(datetimeLocalStr) {
   if (!datetimeLocalStr) return null
-  return new Date(datetimeLocalStr).toISOString().slice(0, 16)
+  return new Date(datetimeLocalStr).toISOString()
 }
 
 function statusBadge(s) {

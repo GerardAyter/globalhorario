@@ -22,7 +22,7 @@ const routes = [
       { path: 'documents',    name: 'documents',    component: () => import('../views/DocumentsView.vue'),   meta: { minRole: 'user'       } },
       { path: 'payrolls',     name: 'payrolls',     component: () => import('../views/PlaceholderView.vue'),  meta: { minRole: 'admin'      } },
       { path: 'reports',      name: 'reports',      component: () => import('../views/PlaceholderView.vue') },
-      { path: 'settings',     name: 'settings',     component: () => import('../views/PlaceholderView.vue'),  meta: { minRole: 'admin'      } },
+      { path: 'settings',     name: 'settings',     component: () => import('../views/CompanySettingsView.vue'), meta: { minRole: 'admin'   } },
       { path: 'companies',    name: 'companies',    component: () => import('../views/CompaniesView.vue'),    meta: { minRole: 'superadmin' } },
       { path: 'tenants',      name: 'tenants',      component: () => import('../views/TenantsView.vue'),      meta: { minRole: 'founder'    } },
     ],

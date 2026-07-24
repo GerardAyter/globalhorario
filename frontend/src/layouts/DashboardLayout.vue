@@ -3,10 +3,15 @@
     <!-- Topbar -->
     <header class="h-12 flex items-center justify-between px-4 bg-white border-b">
       <div class="flex items-center gap-3">
+        <button @click="sidebarOpen = !sidebarOpen"
+                class="md:hidden w-8 h-8 -ml-1 flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 transition-colors flex-shrink-0">
+          <IconX v-if="sidebarOpen" class="w-5 h-5" />
+          <IconMenu2 v-else class="w-5 h-5" />
+        </button>
         <img v-if="whitelabel?.logo_url" :src="whitelabel.logo_url" class="h-8 object-contain max-w-[160px]" />
         <div v-else class="text-lg font-medium">Global<span class="text-[#185FA5]">Horario</span></div>
-        <div class="h-6 border-l" />
-        <nav class="flex items-center gap-2">
+        <div class="h-6 border-l hidden md:block" />
+        <nav class="hidden md:flex items-center gap-2">
           <div v-for="item in topNav" :key="item.name" @click="go(item)"
                :class="topActive(item) ? 'bg-blue-50 text-blue-800 font-medium rounded px-2 py-1 cursor-pointer' : 'text-gray-500 hover:text-gray-700 px-2 py-1 cursor-pointer'">
             {{ item.label }}
@@ -115,8 +120,12 @@
     </header>
 
     <div class="flex flex-1">
+      <!-- Overlay fosc (només mòbil) -->
+      <div v-if="sidebarOpen" class="fixed inset-0 bg-black/40 z-30 md:hidden" @click="sidebarOpen = false" />
+
       <!-- Sidebar -->
-      <aside class="w-48 bg-gray-50 border-r h-[calc(100vh-3rem)] sticky top-12 overflow-y-auto">
+      <aside class="w-48 bg-gray-50 border-r h-[calc(100vh-3rem)] overflow-y-auto fixed md:sticky top-12 left-0 z-40 transition-transform duration-200 md:translate-x-0"
+             :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'">
         <div class="px-2 pb-4">
           <template v-if="hasCompany && sidebar.horari.length">
             <div class="text-[10px] text-gray-400 font-medium tracking-wider px-3 mt-4 mb-1">{{ $t('sidebar.schedule_section') }}</div>
@@ -302,7 +311,7 @@ import {
   IconUsers, IconCalendarOff, IconReceipt2,
   IconReportAnalytics, IconSettings, IconBuilding, IconBuildingSkyscraper,
   IconSitemap, IconUserEdit, IconLogout, IconX, IconChevronDown, IconFileDescription,
-  IconCalendar, IconBell, IconClipboardList, IconTable,
+  IconCalendar, IconBell, IconClipboardList, IconTable, IconMenu2,
 } from '@tabler/icons-vue'
 import { useNotifications } from '../composables/useNotifications'
 import api from '../services/api'
@@ -328,6 +337,10 @@ watch(whitelabel, (wb) => {
   }
   link.href = wb.favicon_url
 }, { immediate: true })
+
+// ── Sidebar mòbil ─────────────────────────────────────────────────────────────
+const sidebarOpen = ref(false)
+watch(() => route.path, () => { sidebarOpen.value = false })
 
 // ── Menú d'usuari ─────────────────────────────────────────────────────────────
 const userMenuOpen = ref(false)
@@ -471,7 +484,7 @@ const sidebar = computed(() => {
   }
 })
 
-function go(item)            { router.push(item.path) }
+function go(item)            { router.push(item.path); sidebarOpen.value = false }
 function sidebarActive(item) { return route.path === item.path }
 function topActive(item)     { return route.path === item.path }
 

@@ -6,7 +6,7 @@
         <p class="text-sm text-gray-400 mt-0.5">{{ $t('documents_page.subtitle') }}</p>
       </div>
       <button v-if="isManager" @click="openUpload"
-              class="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-3 py-1.5 rounded-lg transition-colors">
+              class="w-1/2 sm:w-auto flex items-center justify-center sm:justify-start gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-3 py-1.5 rounded-lg transition-colors">
         <IconUpload class="w-4 h-4" />{{ $t('documents_page.upload_btn') }}
       </button>
     </div>
@@ -15,14 +15,14 @@
     <div v-if="isManager" class="bg-white border border-gray-200 rounded-xl overflow-hidden mb-6">
       <div class="px-5 py-3 border-b flex items-center justify-between gap-3 flex-wrap">
         <h3 class="text-sm font-medium text-gray-900">{{ $t('documents_page.all_documents') }}</h3>
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 w-full sm:w-auto">
           <select v-model="filterEmployee" @change="fetchAll"
-                  class="border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                  class="flex-1 sm:flex-initial border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
             <option value="">{{ $t('documents_page.filter_employee') }}</option>
             <option v-for="e in employees" :key="e.id" :value="e.id">{{ e.nom }} {{ e.cognoms }}</option>
           </select>
           <select v-model="filterType" @change="fetchAll"
-                  class="border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                  class="flex-1 sm:flex-initial border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
             <option value="">{{ $t('documents_page.filter_type') }}</option>
             <option value="payroll">{{ $t('documents_page.type_payroll') }}</option>
             <option value="medical_certificate">{{ $t('documents_page.type_medical_certificate') }}</option>
@@ -50,16 +50,24 @@
         <table class="w-full text-sm">
           <thead>
             <tr class="text-left text-[11px] text-gray-400 uppercase tracking-wider border-b">
+              <th class="px-5 py-2.5 font-medium">{{ $t('documents_page.col_actions') }}</th>
               <th class="px-5 py-2.5 font-medium">{{ $t('documents_page.col_employee') }}</th>
               <th class="px-5 py-2.5 font-medium">{{ $t('documents_page.col_title') }}</th>
               <th class="px-5 py-2.5 font-medium">{{ $t('documents_page.col_type') }}</th>
               <th class="px-5 py-2.5 font-medium">{{ $t('documents_page.col_date') }}</th>
               <th class="px-5 py-2.5 font-medium">{{ $t('documents_page.col_size') }}</th>
-              <th class="px-5 py-2.5 font-medium text-right">{{ $t('documents_page.col_actions') }}</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-100">
             <tr v-for="d in allDocuments" :key="d.id" class="hover:bg-gray-50 transition-colors">
+              <td class="px-5 py-3 whitespace-nowrap">
+                <button @click="doDownload(d)" class="w-7 h-7 inline-flex items-center justify-center rounded text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors" :title="$t('documents_page.download')">
+                  <IconDownload class="w-4 h-4" />
+                </button>
+                <button @click="askDelete(d)" class="w-7 h-7 inline-flex items-center justify-center rounded text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors" :title="$t('documents_page.delete')">
+                  <IconTrash class="w-4 h-4" />
+                </button>
+              </td>
               <td class="px-5 py-3 whitespace-nowrap">{{ d.employee?.nom }} {{ d.employee?.cognoms }}</td>
               <td class="px-5 py-3">
                 <div class="font-medium text-gray-900">{{ d.title }}</div>
@@ -70,14 +78,6 @@
               </td>
               <td class="px-5 py-3 whitespace-nowrap text-gray-500">{{ formatDate(d.created_at) }}</td>
               <td class="px-5 py-3 whitespace-nowrap text-gray-500">{{ formatSize(d.file_size) }}</td>
-              <td class="px-5 py-3 text-right whitespace-nowrap">
-                <button @click="doDownload(d)" class="w-7 h-7 inline-flex items-center justify-center rounded text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors" :title="$t('documents_page.download')">
-                  <IconDownload class="w-4 h-4" />
-                </button>
-                <button @click="askDelete(d)" class="w-7 h-7 inline-flex items-center justify-center rounded text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors" :title="$t('documents_page.delete')">
-                  <IconTrash class="w-4 h-4" />
-                </button>
-              </td>
             </tr>
           </tbody>
         </table>
@@ -86,8 +86,12 @@
 
     <!-- ── Els meus documents ───────────────────────────────────────────────── -->
     <div v-if="hasEmployee" class="bg-white border border-gray-200 rounded-xl overflow-hidden">
-      <div class="px-5 py-3 border-b">
+      <div class="px-5 py-3 border-b flex items-center justify-between gap-3">
         <h3 class="text-sm font-medium text-gray-900">{{ $t('documents_page.my_documents') }}</h3>
+        <button @click="openSelfUpload"
+                class="flex items-center gap-1.5 text-xs font-medium text-blue-600 hover:text-blue-700 border border-blue-200 hover:border-blue-300 px-2.5 py-1.5 rounded-lg transition-colors flex-shrink-0">
+          <IconUpload class="w-3.5 h-3.5" />{{ $t('documents_page.upload_self_btn') }}
+        </button>
       </div>
 
       <div v-if="loadingMine" class="divide-y divide-gray-100">
@@ -129,11 +133,13 @@
       <div v-if="uploadModal" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" @click.self="closeUpload">
         <div class="bg-white rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col">
           <div class="flex items-center justify-between px-6 py-4 border-b flex-shrink-0">
-            <h3 class="font-medium text-gray-900">{{ $t('documents_page.modal_title') }}</h3>
+            <h3 class="font-medium text-gray-900">{{ $t(isSelfUpload ? 'documents_page.modal_self_title' : 'documents_page.modal_title') }}</h3>
             <button @click="closeUpload" class="text-gray-400 hover:text-gray-600"><IconX class="w-5 h-5" /></button>
           </div>
 
           <form @submit.prevent="submitUpload" class="overflow-y-auto flex-1 px-6 py-5 space-y-4">
+            <p v-if="isSelfUpload" class="text-xs text-gray-400 -mt-1">{{ $t('documents_page.self_upload_hint') }}</p>
+
             <div>
               <label class="block text-xs font-medium text-gray-600 mb-1">{{ $t('documents_page.form_title_label') }}</label>
               <input v-model="form.title" type="text" :placeholder="$t('documents_page.form_title_placeholder')" required
@@ -149,13 +155,13 @@
             <div>
               <label class="block text-xs font-medium text-gray-600 mb-1">{{ $t('documents_page.form_type_label') }}</label>
               <select v-model="form.type" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                <option value="payroll">{{ $t('documents_page.type_payroll') }}</option>
+                <option v-if="!isSelfUpload" value="payroll">{{ $t('documents_page.type_payroll') }}</option>
                 <option value="medical_certificate">{{ $t('documents_page.type_medical_certificate') }}</option>
                 <option value="other">{{ $t('documents_page.type_other') }}</option>
               </select>
             </div>
 
-            <div>
+            <div v-if="!isSelfUpload">
               <label class="block text-xs font-medium text-gray-600 mb-1">
                 {{ $t('documents_page.form_employees_label') }}
                 <span v-if="form.employee_ids.length" class="text-gray-400 font-normal">— {{ $t('documents_page.form_employees_selected', { n: form.employee_ids.length }) }}</span>
@@ -243,8 +249,9 @@ const ROLE_HIERARCHY = { user: 0, hr: 1, admin: 2, superadmin: 3, founder: 4 }
 const isManager   = computed(() => (ROLE_HIERARCHY[auth.user?.role] ?? -1) >= ROLE_HIERARCHY.hr)
 const hasEmployee  = computed(() => !!auth.user?.employee?.id)
 
-const { documents: allDocuments, loading: loadingAll, saving, load: loadAllRaw, upload, remove, download } = useDocuments()
-const { documents: myDocuments, loading: loadingMine, load: loadMineRaw } = useDocuments()
+const { documents: allDocuments, loading: loadingAll, saving: savingAll, load: loadAllRaw, upload, remove, download } = useDocuments()
+const { documents: myDocuments, loading: loadingMine, saving: savingMine, load: loadMineRaw, uploadSelf } = useDocuments()
+const saving = computed(() => isSelfUpload.value ? savingMine.value : savingAll.value)
 
 const filterEmployee = ref('')
 const filterType     = ref('')
@@ -313,22 +320,31 @@ const filteredEmployees = computed(() => {
 })
 
 // ── Formulari de pujada ─────────────────────────────────────────────────────────
-const uploadModal = ref(false)
-const formError    = ref('')
+const uploadModal  = ref(false)
+const isSelfUpload  = ref(false)
+const formError     = ref('')
 const selectedFile  = ref(null)
 const form = reactive({ title: '', description: '', type: 'payroll', employee_ids: [] })
 
-function resetForm() {
-  Object.assign(form, { title: '', description: '', type: 'payroll', employee_ids: [] })
+function resetForm(defaultType = 'payroll') {
+  Object.assign(form, { title: '', description: '', type: defaultType, employee_ids: [] })
   employeeSearch.value = ''
   selectedFile.value   = null
   formError.value      = ''
 }
 
 function openUpload() {
-  resetForm()
+  isSelfUpload.value = false
+  resetForm('payroll')
   uploadModal.value = true
 }
+
+function openSelfUpload() {
+  isSelfUpload.value = true
+  resetForm('medical_certificate')
+  uploadModal.value = true
+}
+
 function closeUpload() { uploadModal.value = false }
 
 function onFileChange(e) {
@@ -337,7 +353,7 @@ function onFileChange(e) {
 
 async function submitUpload() {
   formError.value = ''
-  if (form.employee_ids.length === 0) {
+  if (!isSelfUpload.value && form.employee_ids.length === 0) {
     formError.value = t('documents_page.select_at_least_one')
     return
   }
@@ -347,13 +363,20 @@ async function submitUpload() {
   fd.append('title', form.title)
   fd.append('description', form.description || '')
   fd.append('type', form.type)
-  form.employee_ids.forEach(id => fd.append('employee_ids[]', id))
   fd.append('file', selectedFile.value)
 
-  const result = await upload(fd)
+  let result
+  if (isSelfUpload.value) {
+    result = await uploadSelf(fd)
+  } else {
+    form.employee_ids.forEach(id => fd.append('employee_ids[]', id))
+    result = await upload(fd)
+  }
+
   if (result.ok) {
     closeUpload()
-    fetchAll()
+    if (isSelfUpload.value) loadMineRaw()
+    else fetchAll()
   } else {
     formError.value = result.message || t('documents_page.error_upload')
   }

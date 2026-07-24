@@ -35,6 +35,20 @@ export function useDocuments() {
     }
   }
 
+  async function uploadSelf(formData) {
+    saving.value = true
+    try {
+      const res = await api.post('/v1/documents/self', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+      return { ok: true, data: res.data.data }
+    } catch (e) {
+      return { ok: false, errors: e?.response?.data?.errors || {}, message: e?.response?.data?.message }
+    } finally {
+      saving.value = false
+    }
+  }
+
   async function remove(id) {
     await api.delete(`/v1/documents/${id}`)
   }
@@ -51,5 +65,5 @@ export function useDocuments() {
     window.URL.revokeObjectURL(url)
   }
 
-  return { documents, loading, saving, error, load, upload, remove, download }
+  return { documents, loading, saving, error, load, upload, uploadSelf, remove, download }
 }

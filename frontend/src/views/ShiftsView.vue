@@ -1,12 +1,12 @@
 <template>
   <div>
     <!-- Capçalera -->
-    <div class="flex items-center justify-between mb-5">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
       <div>
         <h2 class="text-base font-medium text-gray-900">{{ $t('shifts.title') }}</h2>
-        <p class="text-sm text-gray-400 mt-0.5">{{ $t('shifts.count', { n: shifts.length }) }}</p>
+        <p class="text-sm text-gray-400 mt-0.5">{{ $t(shifts.length === 1 ? 'shifts.count_one' : 'shifts.count_other', { n: shifts.length }) }}</p>
       </div>
-      <div class="flex items-center gap-2">
+      <div class="flex items-center justify-between sm:justify-start gap-2 flex-wrap">
         <!-- Toggle vista -->
         <div class="flex rounded-lg border border-gray-200 overflow-hidden">
           <button @click="viewMode = 'list'"
@@ -30,13 +30,13 @@
     <div v-if="viewMode === 'list'" class="bg-white border border-gray-200 rounded-xl overflow-hidden">
       <!-- Skeleton -->
       <div v-if="loading" class="divide-y divide-gray-100">
-        <div v-for="i in 3" :key="i" class="flex items-center gap-4 px-5 py-4">
+        <div v-for="i in 3" :key="i" class="flex items-center gap-4 px-3 sm:px-5 py-4">
           <div class="w-3 h-3 rounded-full bg-gray-100 animate-pulse flex-shrink-0" />
-          <div class="flex-1 space-y-2">
+          <div class="flex-1 space-y-2 min-w-0">
             <div class="h-4 bg-gray-100 animate-pulse rounded w-32" />
             <div class="h-3 bg-gray-100 animate-pulse rounded w-48" />
           </div>
-          <div class="flex gap-2">
+          <div class="flex gap-2 flex-shrink-0">
             <div class="w-7 h-7 bg-gray-100 animate-pulse rounded" />
             <div class="w-7 h-7 bg-gray-100 animate-pulse rounded" />
           </div>
@@ -56,7 +56,7 @@
       </div>
 
       <div v-else class="divide-y divide-gray-100">
-        <div v-for="s in shifts" :key="s.id" class="flex items-center gap-4 px-5 py-4 hover:bg-gray-50 transition-colors">
+        <div v-for="s in shifts" :key="s.id" class="flex items-center gap-3 sm:gap-4 px-3 sm:px-5 py-4 hover:bg-gray-50 transition-colors">
           <div class="w-3 h-3 rounded-full flex-shrink-0 border border-black/10" :style="{ backgroundColor: s.color || '#94a3b8' }" />
 
           <div class="flex-1 min-w-0">
@@ -64,7 +64,7 @@
               <span class="font-medium text-gray-900 text-sm">{{ s.name }}</span>
               <span v-if="!s.active" class="text-[10px] font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-400">{{ $t('shifts.inactive') }}</span>
             </div>
-            <div class="flex items-center gap-3 mt-1 flex-wrap">
+            <div class="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-3 mt-1">
               <div class="flex gap-0.5">
                 <span v-for="d in 7" :key="d"
                       class="w-5 h-5 rounded text-[10px] font-medium flex items-center justify-center"
@@ -72,14 +72,16 @@
                   {{ DAY_LABELS[d] }}
                 </span>
               </div>
-              <span v-if="s.start_time" class="text-xs text-gray-500 flex items-center gap-1">
-                <IconClock class="w-3 h-3" />{{ s.start_time.substring(0,5) }}
-              </span>
-              <span v-if="s.total_hours" class="text-xs text-gray-500">{{ formatHours(s.total_hours) }}</span>
-              <span v-if="s.flexible_entry" class="text-[10px] font-medium px-2 py-0.5 rounded-full bg-amber-50 text-amber-700">{{ $t('shifts.flexible') }}</span>
-              <span v-if="s.break_duration" class="text-xs text-gray-500 flex items-center gap-1">
-                <IconCoffee class="w-3 h-3" />{{ s.break_duration }} min
-              </span>
+              <div class="flex items-center gap-3 flex-wrap">
+                <span v-if="s.start_time" class="text-xs text-gray-500 flex items-center gap-1">
+                  <IconClock class="w-3 h-3" />{{ s.start_time.substring(0,5) }}
+                </span>
+                <span v-if="s.total_hours" class="text-xs text-gray-500">{{ formatHours(s.total_hours) }}</span>
+                <span v-if="s.flexible_entry" class="text-[10px] font-medium px-2 py-0.5 rounded-full bg-amber-50 text-amber-700">{{ $t('shifts.flexible') }}</span>
+                <span v-if="s.break_duration" class="text-xs text-gray-500 flex items-center gap-1">
+                  <IconCoffee class="w-3 h-3" />{{ s.break_duration }} min
+                </span>
+              </div>
             </div>
           </div>
 
@@ -105,65 +107,70 @@
       </div>
 
       <template v-else>
-        <!-- Capçalera dies (sticky) -->
-        <div class="flex border-b border-gray-200 bg-gray-50 sticky top-0 z-10">
-          <div class="w-14 flex-shrink-0 border-r border-gray-200" />
-          <div v-for="d in 7" :key="d"
-               class="flex-1 text-center py-2.5 text-xs font-medium border-r border-gray-200 last:border-r-0"
-               :class="scheduledDays.has(d) ? 'text-gray-900' : 'text-gray-300'">
-            {{ DAY_FULL_SHORT[d] }}
-          </div>
-        </div>
-
-        <!-- Cos del calendari (scrollable) -->
-        <div ref="calendarBodyRef" class="overflow-y-auto" style="max-height: 640px">
-          <div class="flex" :style="{ height: TOTAL_H + 'px' }">
-
-            <!-- Columna d'hores -->
-            <div class="w-14 flex-shrink-0 relative border-r border-gray-200">
-              <div v-for="h in 24" :key="h"
-                   class="absolute right-2 text-[10px] text-gray-400 tabular-nums"
-                   :style="{ top: (h * HOUR_H - 7) + 'px' }">
-                {{ String(h).padStart(2, '0') }}:00
+        <!-- Contenidor amb scroll horitzontal (mòbil: els 7 dies no caben sense encongir-se il·legibles) -->
+        <div class="overflow-x-auto">
+          <div class="min-w-[700px]">
+            <!-- Capçalera dies (sticky) -->
+            <div class="flex border-b border-gray-200 bg-gray-50 sticky top-0 z-10">
+              <div class="w-14 flex-shrink-0 border-r border-gray-200" />
+              <div v-for="d in 7" :key="d"
+                   class="flex-1 text-center py-2.5 text-xs font-medium border-r border-gray-200 last:border-r-0"
+                   :class="scheduledDays.has(d) ? 'text-gray-900' : 'text-gray-300'">
+                {{ DAY_FULL_SHORT[d] }}
               </div>
             </div>
 
-            <!-- Columnes dels dies -->
-            <div v-for="d in 7" :key="d" class="flex-1 relative border-r border-gray-200 last:border-r-0">
-              <!-- Línies d'hora -->
-              <div v-for="h in 25" :key="h"
-                   class="absolute left-0 right-0 pointer-events-none"
-                   :class="h % 6 === 0 ? 'border-t border-gray-200' : 'border-t border-gray-100'"
-                   :style="{ top: (h * HOUR_H) + 'px' }" />
+            <!-- Cos del calendari (scrollable) -->
+            <div ref="calendarBodyRef" class="overflow-y-auto" style="max-height: 640px">
+              <div class="flex" :style="{ height: TOTAL_H + 'px' }">
 
-              <!-- Torns del dia -->
-              <template v-for="s in shifts" :key="s.id">
-                <div v-if="shiftIsOnDay(s, d)"
-                     class="absolute left-1 right-1 rounded-md overflow-hidden cursor-pointer group transition-opacity hover:opacity-90"
-                     :style="shiftBlockStyle(s)"
-                     @click="openEdit(s)">
-                  <!-- Franja de color sòlid a l'esquerra -->
-                  <div class="absolute left-0 top-0 bottom-0 w-1 rounded-l-md" :style="{ backgroundColor: s.color || '#3B82F6' }" />
-                  <!-- Contingut -->
-                  <div class="pl-2.5 pr-1.5 py-1 h-full flex flex-col justify-start overflow-hidden"
-                       :style="{ backgroundColor: hexToRgba(s.color || '#3B82F6', 0.12) }">
-                    <span class="text-[11px] font-semibold leading-tight truncate"
-                          :style="{ color: s.color || '#3B82F6' }">{{ s.name }}</span>
-                    <span v-if="shiftBlockHeight(s) >= 32" class="text-[10px] leading-tight opacity-70 truncate"
-                          :style="{ color: s.color || '#3B82F6' }">
-                      {{ s.start_time.substring(0,5) }}
-                      <template v-if="s.total_hours"> · {{ formatHours(s.total_hours) }}</template>
-                    </span>
+                <!-- Columna d'hores -->
+                <div class="w-14 flex-shrink-0 relative border-r border-gray-200">
+                  <div v-for="h in 24" :key="h"
+                       class="absolute right-2 text-[10px] text-gray-400 tabular-nums"
+                       :style="{ top: (h * HOUR_H - 7) + 'px' }">
+                    {{ String(h).padStart(2, '0') }}:00
                   </div>
                 </div>
-              </template>
-            </div>
 
+                <!-- Columnes dels dies -->
+                <div v-for="d in 7" :key="d" class="flex-1 relative border-r border-gray-200 last:border-r-0">
+                  <!-- Línies d'hora -->
+                  <div v-for="h in 25" :key="h"
+                       class="absolute left-0 right-0 pointer-events-none"
+                       :class="h % 6 === 0 ? 'border-t border-gray-200' : 'border-t border-gray-100'"
+                       :style="{ top: (h * HOUR_H) + 'px' }" />
+
+                  <!-- Torns del dia -->
+                  <template v-for="s in shifts" :key="s.id">
+                    <div v-if="shiftIsOnDay(s, d)"
+                         class="absolute left-1 right-1 rounded-md overflow-hidden cursor-pointer group transition-opacity hover:opacity-90"
+                         :style="shiftBlockStyle(s)"
+                         @click="openEdit(s)">
+                      <!-- Franja de color sòlid a l'esquerra -->
+                      <div class="absolute left-0 top-0 bottom-0 w-1 rounded-l-md" :style="{ backgroundColor: s.color || '#3B82F6' }" />
+                      <!-- Contingut -->
+                      <div class="pl-2.5 pr-1.5 py-1 h-full flex flex-col justify-start overflow-hidden"
+                           :style="{ backgroundColor: hexToRgba(s.color || '#3B82F6', 0.12) }">
+                        <span class="text-[11px] font-semibold leading-tight truncate"
+                              :style="{ color: s.color || '#3B82F6' }">{{ s.name }}</span>
+                        <span v-if="shiftBlockHeight(s) >= 32" class="text-[10px] leading-tight opacity-70 truncate"
+                              :style="{ color: s.color || '#3B82F6' }">
+                          {{ s.start_time.substring(0,5) }}
+                          <template v-if="s.total_hours"> · {{ formatHours(s.total_hours) }}</template>
+                        </span>
+                      </div>
+                    </div>
+                  </template>
+                </div>
+
+              </div>
+            </div>
           </div>
         </div>
 
         <!-- Nota torns sense horari -->
-        <div v-if="shiftsWithoutTime.length" class="border-t px-5 py-3 bg-amber-50">
+        <div v-if="shiftsWithoutTime.length" class="border-t px-3 sm:px-5 py-3 bg-amber-50">
           <p class="text-xs text-amber-700">
             <span class="font-medium">{{ $t('shifts.unassigned_note') }}</span>
             {{ shiftsWithoutTime.map(s => s.name).join(', ') }}
@@ -176,12 +183,12 @@
     <Teleport to="body">
       <div v-if="modal.open" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" @click.self="closeModal">
         <div class="bg-white rounded-xl shadow-xl w-full max-w-xl max-h-[90vh] flex flex-col">
-          <div class="flex items-center justify-between px-6 py-4 border-b flex-shrink-0">
+          <div class="flex items-center justify-between px-4 sm:px-6 py-4 border-b flex-shrink-0">
             <h3 class="font-medium text-gray-900">{{ modal.isEdit ? $t('shifts.edit_title') : $t('shifts.new_title') }}</h3>
             <button @click="closeModal" class="text-gray-400 hover:text-gray-600"><IconX class="w-5 h-5" /></button>
           </div>
 
-          <form @submit.prevent="submitModal" class="overflow-y-auto flex-1 px-6 py-5 space-y-6">
+          <form @submit.prevent="submitModal" class="overflow-y-auto flex-1 px-4 sm:px-6 py-5 space-y-6">
             <!-- General -->
             <div>
               <p class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3">{{ $t('shifts.general') }}</p>

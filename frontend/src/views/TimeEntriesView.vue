@@ -13,7 +13,7 @@
     </div>
 
     <!-- ── Torn del dia ───────────────────────────────────────────────────── -->
-    <div v-if="shift" class="mb-5 bg-white border border-gray-200 rounded-xl px-5 py-4">
+    <div v-if="shift" class="mb-5 bg-white border border-gray-200 rounded-xl px-3 sm:px-5 py-4">
       <p class="text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-2.5">
         {{ $t(shiftAppliesToday ? 'shift.assigned_today' : 'shift.assigned') }}
         <span v-if="!shiftAppliesToday" class="ml-2 text-amber-600 normal-case font-normal">— {{ $t('shift.not_applicable') }}</span>
@@ -69,7 +69,7 @@
 
     <!-- ── Historial personal ──────────────────────────────────────────────── -->
     <div class="bg-white border border-gray-200 rounded-xl overflow-hidden mb-5">
-      <div class="px-5 py-3 border-b flex items-center justify-between">
+      <div class="px-3 sm:px-5 py-3 border-b flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <h3 class="text-sm font-medium text-gray-700">{{ $t('time_tracking.my_history') }}</h3>
         <div class="flex items-center gap-2">
           <select v-model.number="days"
@@ -87,7 +87,7 @@
       </div>
 
       <div v-if="historyLoading" class="divide-y divide-gray-100">
-        <div v-for="i in 4" :key="i" class="px-5 py-3 flex items-center gap-4">
+        <div v-for="i in 4" :key="i" class="px-3 sm:px-5 py-3 flex items-center gap-4">
           <div class="w-20 h-4 bg-gray-100 animate-pulse rounded" />
           <div class="flex-1 h-4 bg-gray-100 animate-pulse rounded" />
           <div class="w-16 h-4 bg-gray-100 animate-pulse rounded" />
@@ -100,11 +100,16 @@
 
       <div v-else class="divide-y divide-gray-100">
         <div v-for="e in history" :key="e.id"
-             class="px-5 py-3 flex items-center gap-3 hover:bg-gray-50 transition-colors group">
-          <div class="w-28 flex-shrink-0">
-            <p class="text-sm font-medium text-gray-900 capitalize">{{ formatDate(e.date) }}</p>
+             class="px-3 sm:px-5 py-3 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 hover:bg-gray-50 transition-colors group">
+          <div class="flex items-center justify-between sm:contents">
+            <div class="sm:w-28 sm:flex-shrink-0">
+              <p class="text-sm font-medium text-gray-900 capitalize">{{ formatDate(e.date) }}</p>
+            </div>
+            <span class="sm:hidden text-[10px] font-medium px-2 py-0.5 rounded-full" :class="statusBadge(e.work_status)">
+              {{ statusLabel(e.work_status) }}
+            </span>
           </div>
-          <div class="flex items-center gap-3 flex-1 text-sm text-gray-600">
+          <div class="flex items-center gap-3 flex-1 text-sm text-gray-600 flex-wrap">
             <span class="flex items-center gap-1">
               <IconLogin class="w-3.5 h-3.5 text-green-500" />{{ formatTime(e.clock_in_at) }}
             </span>
@@ -123,44 +128,46 @@
               <IconCoffee class="w-3 h-3" />{{ formatDuration(e.total_break_minutes) }}
             </span>
           </div>
-          <div class="w-16 text-right flex-shrink-0">
-            <span v-if="e.effective_minutes != null"
-                  class="text-sm font-mono font-medium"
-                  :class="e.effective_minutes < 420 ? 'text-amber-600' : 'text-gray-900'">
-              {{ formatDuration(e.effective_minutes) }}
-            </span>
-            <span v-else class="text-xs text-gray-300">{{ $t('time_tracking.in_progress') }}</span>
-          </div>
-          <div class="w-16 text-right flex-shrink-0">
-            <span class="text-[10px] font-medium px-2 py-0.5 rounded-full" :class="statusBadge(e.work_status)">
-              {{ statusLabel(e.work_status) }}
-            </span>
-          </div>
-          <!-- Accions -->
-          <div class="w-14 flex items-center justify-end gap-0.5 flex-shrink-0">
-            <span v-if="e.pending_request_type"
-                  class="text-[9px] font-medium px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700">
-              {{ $t('time_tracking.pending_badge') }}
-            </span>
-            <span v-else-if="e.pending_admin_request"
-                  class="text-[9px] font-medium px-1.5 py-0.5 rounded-full bg-purple-50 text-purple-700">
-              {{ $t('time_tracking.pending_admin_badge') }}
-            </span>
-            <template v-else>
-              <button @click.stop="openEdit(e)" :title="$t('time_tracking.request_edit')"
-                      class="w-6 h-6 flex items-center justify-center rounded-md text-gray-300 hover:text-amber-600 hover:bg-amber-50 transition-colors opacity-0 group-hover:opacity-100">
-                <IconPencil class="w-3 h-3" />
-              </button>
-              <button @click.stop="openDelete(e)" :title="$t('time_tracking.request_delete')"
-                      class="w-6 h-6 flex items-center justify-center rounded-md text-gray-300 hover:text-red-600 hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100">
-                <IconTrash class="w-3 h-3" />
-              </button>
-            </template>
+          <div class="flex items-center justify-between sm:contents">
+            <div class="sm:w-16 sm:text-right sm:flex-shrink-0">
+              <span v-if="e.effective_minutes != null"
+                    class="text-sm font-mono font-medium"
+                    :class="e.effective_minutes < 420 ? 'text-amber-600' : 'text-gray-900'">
+                {{ formatDuration(e.effective_minutes) }}
+              </span>
+              <span v-else class="text-xs text-gray-300">{{ $t('time_tracking.in_progress') }}</span>
+            </div>
+            <div class="hidden sm:block sm:w-16 sm:text-right sm:flex-shrink-0">
+              <span class="text-[10px] font-medium px-2 py-0.5 rounded-full" :class="statusBadge(e.work_status)">
+                {{ statusLabel(e.work_status) }}
+              </span>
+            </div>
+            <!-- Accions -->
+            <div class="flex items-center gap-0.5 sm:w-14 sm:justify-end sm:flex-shrink-0">
+              <span v-if="e.pending_request_type"
+                    class="text-[9px] font-medium px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700">
+                {{ $t('time_tracking.pending_badge') }}
+              </span>
+              <span v-else-if="e.pending_admin_request"
+                    class="text-[9px] font-medium px-1.5 py-0.5 rounded-full bg-purple-50 text-purple-700">
+                {{ $t('time_tracking.pending_admin_badge') }}
+              </span>
+              <template v-else>
+                <button @click.stop="openEdit(e)" :title="$t('time_tracking.request_edit')"
+                        class="w-6 h-6 flex items-center justify-center rounded-md text-gray-300 hover:text-amber-600 hover:bg-amber-50 transition-colors opacity-100 sm:opacity-0 sm:group-hover:opacity-100">
+                  <IconPencil class="w-3 h-3" />
+                </button>
+                <button @click.stop="openDelete(e)" :title="$t('time_tracking.request_delete')"
+                        class="w-6 h-6 flex items-center justify-center rounded-md text-gray-300 hover:text-red-600 hover:bg-red-50 transition-colors opacity-100 sm:opacity-0 sm:group-hover:opacity-100">
+                  <IconTrash class="w-3 h-3" />
+                </button>
+              </template>
+            </div>
           </div>
         </div>
       </div>
 
-      <div v-if="history.length > 0" class="border-t bg-gray-50 px-5 py-3 flex items-center justify-between text-xs text-gray-500">
+      <div v-if="history.length > 0" class="border-t bg-gray-50 px-3 sm:px-5 py-3 flex items-center justify-between text-xs text-gray-500">
         <span>{{ $t('time_tracking.days_count', { n: history.length }) }}</span>
         <span>{{ $t('time_tracking.total_effective') }}: <span class="font-semibold text-gray-700">{{ formatDuration(totalEffectiveMinutes) }}</span></span>
       </div>
@@ -168,7 +175,7 @@
 
     <!-- ── Registre empresa (HR+) ─────────────────────────────────────────── -->
     <div v-if="isHrPlus" class="bg-white border border-gray-200 rounded-xl overflow-hidden">
-      <div class="px-5 py-3 border-b flex items-center justify-between gap-4">
+      <div class="px-3 sm:px-5 py-3 border-b flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div class="flex items-center gap-3">
           <h3 class="text-sm font-medium text-gray-700">{{ $t('time_tracking.company_entries') }}</h3>
           <span v-if="isToday" class="flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-green-50 text-green-700">
@@ -177,7 +184,7 @@
         </div>
         <div class="flex items-center gap-2">
           <input v-model="companyDate" type="date"
-                 class="text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                 class="flex-1 sm:flex-initial text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500" />
           <button @click="fetchCompanyEntries"
                   class="text-xs border border-gray-200 rounded-lg px-2 py-1.5 hover:bg-gray-50 transition-colors text-gray-500">
             <IconRefresh class="w-3.5 h-3.5" />
@@ -187,7 +194,7 @@
 
       <!-- Skeleton -->
       <div v-if="companyLoading" class="divide-y divide-gray-100">
-        <div v-for="i in 4" :key="i" class="px-5 py-3 flex items-center gap-4">
+        <div v-for="i in 4" :key="i" class="px-3 sm:px-5 py-3 flex items-center gap-4">
           <div class="w-8 h-8 bg-gray-100 animate-pulse rounded-full flex-shrink-0" />
           <div class="flex-1 h-4 bg-gray-100 animate-pulse rounded" />
           <div class="w-32 h-4 bg-gray-100 animate-pulse rounded" />
@@ -203,26 +210,35 @@
 
         <div v-else class="divide-y divide-gray-100">
           <div v-for="e in companyEntries" :key="e.id"
-               class="px-5 py-3 flex items-center gap-4 hover:bg-gray-50 transition-colors group">
+               class="px-3 sm:px-5 py-3 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 hover:bg-gray-50 transition-colors group">
 
-            <!-- Avatar empleat -->
-            <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold text-white flex-shrink-0"
-                 :style="{ backgroundColor: avatarColor(e.employee?.nom + e.employee?.cognoms) }">
-              {{ (e.employee?.nom?.[0] || '').toUpperCase() }}{{ (e.employee?.cognoms?.[0] || '').toUpperCase() }}
-            </div>
+            <div class="flex items-center gap-3 sm:contents">
+              <!-- Avatar empleat -->
+              <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold text-white flex-shrink-0"
+                   :style="{ backgroundColor: avatarColor(e.employee?.nom + e.employee?.cognoms) }">
+                {{ (e.employee?.nom?.[0] || '').toUpperCase() }}{{ (e.employee?.cognoms?.[0] || '').toUpperCase() }}
+              </div>
 
-            <!-- Nom + Departament -->
-            <div class="w-44 flex-shrink-0 min-w-0">
-              <p class="text-sm font-medium text-gray-900 truncate">
-                {{ e.employee?.nom }} {{ e.employee?.cognoms }}
-              </p>
-              <p v-if="e.employee?.department" class="text-xs text-gray-400 truncate">
-                {{ e.employee.department.name }}
-              </p>
+              <!-- Nom + Departament -->
+              <div class="flex-1 min-w-0 sm:w-44 sm:flex-shrink-0">
+                <p class="text-sm font-medium text-gray-900 truncate">
+                  {{ e.employee?.nom }} {{ e.employee?.cognoms }}
+                </p>
+                <p v-if="e.employee?.department" class="text-xs text-gray-400 truncate">
+                  {{ e.employee.department.name }}
+                </p>
+              </div>
+
+              <!-- Estat (mòbil) -->
+              <span class="sm:hidden flex-shrink-0 text-[10px] font-medium px-2 py-0.5 rounded-full" :class="statusBadge(e.work_status)">
+                <span v-if="e.work_status === 'clocked_in'" class="inline-block w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse mr-1" />
+                <span v-if="e.work_status === 'on_break'" class="inline-block w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse mr-1" />
+                {{ statusLabel(e.work_status) }}
+              </span>
             </div>
 
             <!-- Hores -->
-            <div class="flex items-center gap-3 flex-1 text-sm text-gray-600">
+            <div class="flex items-center gap-3 flex-1 text-sm text-gray-600 flex-wrap">
               <span class="flex items-center gap-1">
                 <IconLogin class="w-3.5 h-3.5 text-green-500" />{{ formatTimeWithDay(e.clock_in_at) }}
               </span>
@@ -242,54 +258,56 @@
               </span>
             </div>
 
-            <!-- Temps efectiu -->
-            <div class="w-20 text-right flex-shrink-0">
-              <span v-if="e.effective_minutes != null" class="text-sm font-mono font-medium text-gray-900">
-                {{ formatDuration(e.effective_minutes) }}
-              </span>
-              <span v-else class="text-xs text-gray-300">{{ $t('time_tracking.in_progress') }}</span>
-            </div>
+            <div class="flex items-center justify-between sm:contents">
+              <!-- Temps efectiu -->
+              <div class="sm:w-20 sm:text-right sm:flex-shrink-0">
+                <span v-if="e.effective_minutes != null" class="text-sm font-mono font-medium text-gray-900">
+                  {{ formatDuration(e.effective_minutes) }}
+                </span>
+                <span v-else class="text-xs text-gray-300">{{ $t('time_tracking.in_progress') }}</span>
+              </div>
 
-            <!-- Estat -->
-            <div class="w-24 text-right flex-shrink-0">
-              <span class="text-[10px] font-medium px-2 py-0.5 rounded-full" :class="statusBadge(e.work_status)">
-                <span v-if="e.work_status === 'clocked_in'" class="inline-block w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse mr-1" />
-                <span v-if="e.work_status === 'on_break'" class="inline-block w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse mr-1" />
-                {{ statusLabel(e.work_status) }}
-              </span>
-            </div>
+              <!-- Estat (escriptori) -->
+              <div class="hidden sm:block sm:w-24 sm:text-right sm:flex-shrink-0">
+                <span class="text-[10px] font-medium px-2 py-0.5 rounded-full" :class="statusBadge(e.work_status)">
+                  <span v-if="e.work_status === 'clocked_in'" class="inline-block w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse mr-1" />
+                  <span v-if="e.work_status === 'on_break'" class="inline-block w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse mr-1" />
+                  {{ statusLabel(e.work_status) }}
+                </span>
+              </div>
 
-            <!-- Accions admin -->
-            <div class="w-20 flex items-center justify-end gap-0.5 flex-shrink-0">
-              <span v-if="e.pending_admin_request"
-                    class="text-[9px] font-medium px-1.5 py-0.5 rounded-full bg-purple-50 text-purple-700 opacity-0 group-hover:opacity-100">
-                {{ $t('time_tracking.pending_approval_badge') }}
-              </span>
-              <template v-else>
-                <button v-if="!e.clock_out_at"
-                        @click.stop="doAdminClockOut(e)"
-                        :disabled="adminClockingOutId === e.id"
-                        :title="$t('time_tracking.close_shift')"
-                        class="w-6 h-6 flex items-center justify-center rounded-md transition-colors opacity-0 group-hover:opacity-100"
-                        :class="adminClockingOutId === e.id ? 'text-gray-200 cursor-not-allowed' : 'text-gray-400 hover:text-green-600 hover:bg-green-50'">
-                  <IconLogout class="w-3 h-3" />
-                </button>
-                <button @click.stop="openAdminEdit(e)" :title="$t('time_tracking.request_edit')"
-                        class="w-6 h-6 flex items-center justify-center rounded-md text-gray-300 hover:text-amber-600 hover:bg-amber-50 transition-colors opacity-0 group-hover:opacity-100">
-                  <IconPencil class="w-3 h-3" />
-                </button>
-                <button @click.stop="openAdminDelete(e)" :title="$t('time_tracking.request_delete')"
-                        class="w-6 h-6 flex items-center justify-center rounded-md text-gray-300 hover:text-red-600 hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100">
-                  <IconTrash class="w-3 h-3" />
-                </button>
-              </template>
+              <!-- Accions admin -->
+              <div class="flex items-center gap-0.5 sm:w-20 sm:justify-end sm:flex-shrink-0">
+                <span v-if="e.pending_admin_request"
+                      class="text-[9px] font-medium px-1.5 py-0.5 rounded-full bg-purple-50 text-purple-700 opacity-100 sm:opacity-0 sm:group-hover:opacity-100">
+                  {{ $t('time_tracking.pending_approval_badge') }}
+                </span>
+                <template v-else>
+                  <button v-if="!e.clock_out_at"
+                          @click.stop="doAdminClockOut(e)"
+                          :disabled="adminClockingOutId === e.id"
+                          :title="$t('time_tracking.close_shift')"
+                          class="w-6 h-6 flex items-center justify-center rounded-md transition-colors opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+                          :class="adminClockingOutId === e.id ? 'text-gray-200 cursor-not-allowed' : 'text-gray-400 hover:text-green-600 hover:bg-green-50'">
+                    <IconLogout class="w-3 h-3" />
+                  </button>
+                  <button @click.stop="openAdminEdit(e)" :title="$t('time_tracking.request_edit')"
+                          class="w-6 h-6 flex items-center justify-center rounded-md text-gray-300 hover:text-amber-600 hover:bg-amber-50 transition-colors opacity-100 sm:opacity-0 sm:group-hover:opacity-100">
+                    <IconPencil class="w-3 h-3" />
+                  </button>
+                  <button @click.stop="openAdminDelete(e)" :title="$t('time_tracking.request_delete')"
+                          class="w-6 h-6 flex items-center justify-center rounded-md text-gray-300 hover:text-red-600 hover:bg-red-50 transition-colors opacity-100 sm:opacity-0 sm:group-hover:opacity-100">
+                    <IconTrash class="w-3 h-3" />
+                  </button>
+                </template>
+              </div>
             </div>
           </div>
         </div>
 
         <!-- Empleats sense fitxatge (avui) -->
         <div v-if="isToday && companyNotClocked.length > 0"
-             class="border-t px-5 py-3 bg-amber-50">
+             class="border-t px-3 sm:px-5 py-3 bg-amber-50">
           <p class="text-xs font-medium text-amber-700 mb-2">
             <IconAlertTriangle class="w-3.5 h-3.5 inline mr-1" />
             {{ $t('time_tracking.not_clocked_today') }} ({{ companyNotClocked.length }})
@@ -305,9 +323,9 @@
 
         <!-- Totals -->
         <div v-if="companyEntries.length > 0"
-             class="border-t bg-gray-50 px-5 py-3 flex items-center justify-between text-xs text-gray-500">
+             class="border-t bg-gray-50 px-3 sm:px-5 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs text-gray-500">
           <span>{{ $t('time_tracking.records_count', { n: companyEntries.length }) }}</span>
-          <div class="flex items-center gap-4">
+          <div class="flex items-center gap-4 flex-wrap">
             <span>{{ $t('time_tracking.active') }}: <span class="font-semibold text-green-700">{{ companyEntries.filter(e => e.work_status === 'clocked_in').length }}</span></span>
             <span>{{ $t('time_tracking.on_break') }}: <span class="font-semibold text-amber-700">{{ companyEntries.filter(e => e.work_status === 'on_break').length }}</span></span>
             <span>{{ $t('time_tracking.completed') }}: <span class="font-semibold text-gray-700">{{ companyEntries.filter(e => e.work_status === 'clocked_out').length }}</span></span>
@@ -684,7 +702,7 @@ async function submitAdminDelete() {
 
 function localToUtc(s) {
   if (!s) return null
-  return new Date(s).toISOString().slice(0, 16)
+  return new Date(s).toISOString()
 }
 
 function toDatetimeLocal(iso) {
@@ -718,8 +736,8 @@ function openDelete(e) {
 async function submitEdit() {
   editError.value = ''; editSaving.value = true
   const body = { reason: editForm.value.reason }
-  if (editForm.value.clock_in_at)  body.clock_in_at  = editForm.value.clock_in_at
-  if (editForm.value.clock_out_at) body.clock_out_at = editForm.value.clock_out_at
+  if (editForm.value.clock_in_at)  body.clock_in_at  = localToUtc(editForm.value.clock_in_at)
+  if (editForm.value.clock_out_at) body.clock_out_at = localToUtc(editForm.value.clock_out_at)
   try {
     await api.post(`/v1/time-tracking/entries/${selected.value.id}/edit-request`, body)
     editSuccess.value = true

@@ -3,7 +3,7 @@
     <div class="flex items-center justify-between mb-5">
       <div>
         <h2 class="text-base font-medium text-gray-900">{{ $t('employees_view.title') }}</h2>
-        <p class="text-sm text-gray-400 mt-0.5">{{ $t('employees_view.count', { n: pagination.total }) }}</p>
+        <p class="text-sm text-gray-400 mt-0.5">{{ $t(pagination.total === 1 ? 'employees_view.count_one' : 'employees_view.count_other', { n: pagination.total }) }}</p>
       </div>
       <button @click="openCreate" class="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-3 py-1.5 rounded-lg transition-colors">
         <IconPlus class="w-4 h-4" />{{ $t('employees_view.new') }}
@@ -18,7 +18,7 @@
     <div class="bg-white border border-gray-200 rounded-xl overflow-hidden">
       <!-- Skeleton -->
       <div v-if="loading" class="divide-y divide-gray-100">
-        <div v-for="i in 4" :key="i" class="flex items-center gap-4 px-5 py-4">
+        <div v-for="i in 4" :key="i" class="flex items-center gap-4 px-3 sm:px-5 py-4">
           <div class="w-9 h-9 rounded-full bg-gray-100 animate-pulse flex-shrink-0" />
           <div class="flex-1 space-y-2">
             <div class="h-4 bg-gray-100 animate-pulse rounded w-36" />
@@ -47,77 +47,82 @@
 
       <!-- Llista -->
       <div v-else class="divide-y divide-gray-100">
-        <div v-for="e in employees" :key="e.id" class="flex items-center gap-4 px-5 py-4 hover:bg-gray-50 transition-colors">
-          <!-- #ID -->
-          <div class="w-8 text-xs text-gray-400 font-mono flex-shrink-0 text-right">#{{ e.id }}</div>
+        <div v-for="e in employees" :key="e.id"
+             class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 px-3 sm:px-5 py-3 sm:py-4 hover:bg-gray-50 transition-colors">
 
-          <!-- Avatar -->
-          <div class="w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold text-white flex-shrink-0"
-               :style="{ backgroundColor: avatarColor(e.nom + e.cognoms) }">
-            {{ (e.nom[0] || '').toUpperCase() }}{{ (e.cognoms[0] || '').toUpperCase() }}
-          </div>
+          <div class="flex items-center gap-3 sm:contents">
+            <!-- Avatar -->
+            <div class="w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold text-white flex-shrink-0"
+                 :style="{ backgroundColor: avatarColor(e.nom + e.cognoms) }">
+              {{ (e.nom[0] || '').toUpperCase() }}{{ (e.cognoms[0] || '').toUpperCase() }}
+            </div>
 
-          <!-- Nom + email + torn -->
-          <div class="flex-1 min-w-0">
-            <div class="font-medium text-gray-900 text-sm truncate">{{ e.nom }} {{ e.cognoms }}</div>
-            <div class="flex items-center gap-2 flex-wrap">
-              <span v-if="e.email" class="text-xs text-gray-400 truncate">{{ e.email }}</span>
-              <span v-if="e.shift" class="flex items-center gap-1 text-xs text-gray-400">
-                <span class="w-2 h-2 rounded-full flex-shrink-0" :style="{ backgroundColor: e.shift.color || '#94a3b8' }" />
-                {{ e.shift.name }}
-              </span>
+            <!-- Nom + email + torn -->
+            <div class="flex-1 min-w-0">
+              <div class="font-medium text-gray-900 text-sm truncate">{{ e.nom }} {{ e.cognoms }}</div>
+              <div class="flex items-center gap-2 flex-wrap">
+                <span v-if="e.email" class="text-xs text-gray-400 truncate">{{ e.email }}</span>
+                <span v-if="e.shift" class="flex items-center gap-1 text-xs text-gray-400">
+                  <span class="w-2 h-2 rounded-full flex-shrink-0" :style="{ backgroundColor: e.shift.color || '#94a3b8' }" />
+                  {{ e.shift.name }}
+                </span>
+              </div>
             </div>
           </div>
 
           <!-- Empresa (superadmin) -->
           <div v-if="e.company" class="hidden lg:block w-36 text-xs text-gray-500 truncate">{{ e.company.name }}</div>
 
-          <!-- Rol -->
-          <div class="w-28 flex-shrink-0">
-            <span v-if="e.user" :class="roleBadgeClass(e.user.role)" class="text-[10px] font-medium px-2 py-0.5 rounded-full">
-              {{ roleLabel(e.user.role) }}
-            </span>
-            <span v-else class="text-[10px] font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-400">{{ $t('employees_view.no_access') }}</span>
-          </div>
+          <div class="flex items-center justify-between sm:contents">
+            <div class="flex items-center gap-2 sm:contents">
+              <!-- Rol -->
+              <div class="sm:w-28 sm:flex-shrink-0">
+                <span v-if="e.user" :class="roleBadgeClass(e.user.role)" class="text-[10px] font-medium px-2 py-0.5 rounded-full">
+                  {{ roleLabel(e.user.role) }}
+                </span>
+                <span v-else class="text-[10px] font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-400">{{ $t('employees_view.no_access') }}</span>
+              </div>
 
-          <!-- Actiu -->
-          <div class="w-16 flex-shrink-0">
-            <span v-if="e.actiu" class="text-[10px] font-medium px-2 py-0.5 rounded-full bg-green-50 text-green-700">{{ $t('employees_view.active') }}</span>
-            <span v-else class="text-[10px] font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">{{ $t('employees_view.inactive') }}</span>
-          </div>
+              <!-- Actiu -->
+              <div class="sm:w-16 sm:flex-shrink-0">
+                <span v-if="e.actiu" class="text-[10px] font-medium px-2 py-0.5 rounded-full bg-green-50 text-green-700">{{ $t('employees_view.active') }}</span>
+                <span v-else class="text-[10px] font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">{{ $t('employees_view.inactive') }}</span>
+              </div>
+            </div>
 
-          <!-- Botons -->
-          <div class="flex items-center gap-1 flex-shrink-0">
-            <button @click="viewTarget = e" class="w-7 h-7 flex items-center justify-center rounded text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors" :title="$t('employees_view.view_details')">
-              <IconEye class="w-4 h-4" />
-            </button>
-            <button @click="openEdit(e)" class="w-7 h-7 flex items-center justify-center rounded text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors" :title="$t('employees_view.edit')">
-              <IconEdit class="w-4 h-4" />
-            </button>
-            <button v-if="e.user"
-                    @click="doSendInvitation(e)"
-                    :disabled="sendingInvitationId === e.id"
-                    :title="sentInvitations[e.id] ? $t('employees_view.email_sent') : $t('employees_view.send_recovery_email')"
-                    class="w-7 h-7 flex items-center justify-center rounded transition-colors"
-                    :class="sentInvitations[e.id]
-                      ? 'text-green-600 bg-green-50'
-                      : 'text-gray-400 hover:text-blue-600 hover:bg-blue-50'">
-              <IconCheck v-if="sentInvitations[e.id]" class="w-4 h-4" />
-              <svg v-else-if="sendingInvitationId === e.id" class="animate-spin w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
-              </svg>
-              <IconMail v-else class="w-4 h-4" />
-            </button>
-            <button @click="askDelete(e)"
-                    :disabled="e.user?.role === 'admin'"
-                    :title="e.user?.role === 'admin' ? $t('employees_view.cannot_delete_admin') : $t('employees_view.delete')"
-                    class="w-7 h-7 flex items-center justify-center rounded transition-colors"
-                    :class="e.user?.role === 'admin'
-                      ? 'text-gray-200 cursor-not-allowed'
-                      : 'text-gray-400 hover:text-red-600 hover:bg-red-50'">
-              <IconTrash class="w-4 h-4" />
-            </button>
+            <!-- Botons -->
+            <div class="flex items-center gap-1 flex-shrink-0">
+              <button @click="viewTarget = e" class="w-7 h-7 flex items-center justify-center rounded text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors" :title="$t('employees_view.view_details')">
+                <IconEye class="w-4 h-4" />
+              </button>
+              <button @click="openEdit(e)" class="w-7 h-7 flex items-center justify-center rounded text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors" :title="$t('employees_view.edit')">
+                <IconEdit class="w-4 h-4" />
+              </button>
+              <button v-if="e.user"
+                      @click="askSendInvitation(e)"
+                      :disabled="sendingInvitationId === e.id"
+                      :title="sentInvitations[e.id] ? $t('employees_view.email_sent') : $t('employees_view.send_recovery_email')"
+                      class="w-7 h-7 flex items-center justify-center rounded transition-colors"
+                      :class="sentInvitations[e.id]
+                        ? 'text-green-600 bg-green-50'
+                        : 'text-gray-400 hover:text-blue-600 hover:bg-blue-50'">
+                <IconCheck v-if="sentInvitations[e.id]" class="w-4 h-4" />
+                <svg v-else-if="sendingInvitationId === e.id" class="animate-spin w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                </svg>
+                <IconMail v-else class="w-4 h-4" />
+              </button>
+              <button @click="askDelete(e)"
+                      :disabled="e.user?.role === 'admin'"
+                      :title="e.user?.role === 'admin' ? $t('employees_view.cannot_delete_admin') : $t('employees_view.delete')"
+                      class="w-7 h-7 flex items-center justify-center rounded transition-colors"
+                      :class="e.user?.role === 'admin'
+                        ? 'text-gray-200 cursor-not-allowed'
+                        : 'text-gray-400 hover:text-red-600 hover:bg-red-50'">
+                <IconTrash class="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -435,6 +440,31 @@
       </div>
     </Teleport>
 
+    <!-- ── Modal confirmar enviament de correu de recuperació ───────────────── -->
+    <Teleport to="body">
+      <div v-if="invitationTarget" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" @click.self="invitationTarget = null">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-sm p-6">
+          <div class="flex items-start gap-3 mb-5">
+            <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+              <IconMail class="w-5 h-5 text-blue-600" />
+            </div>
+            <div>
+              <p class="font-medium text-gray-900">{{ $t('employees_view.send_invitation_title') }}</p>
+              <p class="text-sm text-gray-500 mt-1">
+                {{ $t('employees_view.send_invitation_desc', { name: `${invitationTarget.nom} ${invitationTarget.cognoms}` }) }}
+              </p>
+            </div>
+          </div>
+          <div class="flex gap-2 justify-end">
+            <button @click="invitationTarget = null" class="px-4 py-2 text-sm border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors">{{ $t('common.cancel') }}</button>
+            <button @click="confirmSendInvitation" class="px-4 py-2 text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
+              {{ $t('employees_view.send_invitation_confirm') }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
+
     <!-- ── Modal confirmar eliminació ─────────────────────────────────────── -->
     <Teleport to="body">
       <div v-if="deleteTarget" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" @click.self="deleteTarget = null">
@@ -610,6 +640,17 @@ async function submitModal() {
 const sendingInvitationId = ref(null)
 const sentInvitations     = ref({})
 const invitationError     = ref('')
+const invitationTarget    = ref(null)
+
+function askSendInvitation(e) {
+  invitationTarget.value = e
+}
+
+async function confirmSendInvitation() {
+  const e = invitationTarget.value
+  invitationTarget.value = null
+  if (e) await doSendInvitation(e)
+}
 
 async function doSendInvitation(e) {
   if (sendingInvitationId.value) return

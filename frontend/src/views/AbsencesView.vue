@@ -202,15 +202,23 @@
 
     <!-- ── Panell admin: sol·licituds pendents (HR+) ───────────────────────── -->
     <div v-if="isHrPlus" class="mt-4 bg-white border border-gray-200 rounded-xl overflow-hidden">
-      <div class="px-5 py-3 border-b flex items-center justify-between">
-        <div class="flex items-center gap-3">
-          <h3 class="text-sm font-medium text-gray-900">{{ $t('absence.company_requests') }}</h3>
+      <div class="px-5 py-3 border-b flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2 min-w-0">
+          <h3 class="text-sm font-medium text-gray-900 truncate">{{ $t('absence.company_requests') }}</h3>
           <span v-if="pendingCount > 0"
-                class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
+                class="flex-shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
             {{ $t('absence.pending_only', { n: pendingCount }) }}
           </span>
         </div>
-        <div class="flex gap-1">
+
+        <!-- Mòbil: desplegable -->
+        <select v-model="companyFilter"
+                class="sm:hidden flex-shrink-0 text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <option v-for="f in statusFilters" :key="f.value" :value="f.value">{{ f.label }}</option>
+        </select>
+
+        <!-- Escriptori: botons -->
+        <div class="hidden sm:flex gap-1">
           <button v-for="f in statusFilters" :key="f.value"
                   @click="companyFilter = f.value"
                   class="text-xs px-3 py-1 rounded-lg transition-colors"

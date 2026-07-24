@@ -1,12 +1,12 @@
 <template>
   <div>
     <div class="flex items-center justify-between mb-5">
-      <div>
+      <div class="w-1/2 sm:w-auto">
         <h2 class="text-base font-medium text-gray-900">{{ $t('convenis.title') }}</h2>
         <p class="text-sm text-gray-400 mt-0.5">{{ $t('convenis.subtitle') }}</p>
       </div>
       <button @click="openCreate"
-              class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-xl transition-colors">
+              class="w-1/2 sm:w-auto flex items-center justify-center sm:justify-start gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-xl transition-colors">
         <IconPlus class="w-4 h-4" />{{ $t('convenis.new') }}
       </button>
     </div>
@@ -36,7 +36,7 @@
              class="px-5 py-4 hover:bg-gray-50 transition-colors">
           <div class="flex items-start gap-4">
             <!-- Icona -->
-            <div class="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center flex-shrink-0 mt-0.5">
+            <div class="hidden sm:flex w-10 h-10 rounded-xl bg-indigo-50 items-center justify-center flex-shrink-0 mt-0.5">
               <IconFileDescription class="w-5 h-5 text-indigo-600" />
             </div>
 

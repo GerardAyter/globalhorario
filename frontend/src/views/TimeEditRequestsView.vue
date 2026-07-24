@@ -45,6 +45,8 @@
       </div>
 
       <template v-else>
+        <!-- ── Escriptori ─────────────────────────────────────────────────── -->
+        <div class="hidden sm:block">
         <!-- Cap -->
         <div class="px-5 py-2 bg-gray-50 border-b grid grid-cols-[1fr_1.2fr_1.4fr_auto] gap-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider">
           <span>{{ $t('edit_requests.col_employee_date') }}</span>
@@ -79,18 +81,18 @@
           <div class="space-y-1.5">
             <template v-if="req.type === 'delete'">
               <div class="text-xs text-gray-500">
-                <span class="text-gray-400">{{ $t('edit_requests.entry_label') }} </span>
+                <span class="text-gray-400 mr-1">{{ $t('edit_requests.entry_label') }}</span>
                 <span class="font-mono">{{ formatTime(req.original_data?.clock_in_at) }}</span>
                 <span v-if="req.original_data?.clock_out_at">
                   <span class="text-gray-400 mx-1">·</span>
-                  <span class="text-gray-400">{{ $t('edit_requests.exit_label') }} </span>
+                  <span class="text-gray-400 mr-1">{{ $t('edit_requests.exit_label') }}</span>
                   <span class="font-mono">{{ formatTime(req.original_data?.clock_out_at) }}</span>
                 </span>
               </div>
             </template>
             <template v-else-if="req.type === 'edit'">
               <div v-if="req.requested_data?.clock_in_at" class="text-xs">
-                <span class="text-gray-400">{{ $t('edit_requests.entry_label') }} </span>
+                <span class="text-gray-400 mr-1">{{ $t('edit_requests.entry_label') }}</span>
                 <template v-if="isSameTime(req.original_data?.clock_in_at, req.requested_data?.clock_in_at)">
                   <span class="font-mono">{{ formatTime(req.original_data?.clock_in_at) }}</span>
                 </template>
@@ -101,7 +103,7 @@
                 </template>
               </div>
               <div v-if="req.requested_data?.clock_out_at" class="text-xs">
-                <span class="text-gray-400">{{ $t('edit_requests.exit_label') }} </span>
+                <span class="text-gray-400 mr-1">{{ $t('edit_requests.exit_label') }}</span>
                 <template v-if="isSameTime(req.original_data?.clock_out_at, req.requested_data?.clock_out_at)">
                   <span class="font-mono">{{ formatTime(req.original_data?.clock_out_at) }}</span>
                 </template>
@@ -114,17 +116,17 @@
             </template>
             <template v-else-if="req.type === 'break_delete'">
               <div class="text-xs text-gray-500">
-                <span class="text-gray-400">{{ $t('edit_requests.break_start_label') }} </span>
+                <span class="text-gray-400 mr-1">{{ $t('edit_requests.break_start_label') }}</span>
                 <span class="font-mono">{{ formatTime(req.original_data?.break_start_at) }}</span>
                 <span class="text-gray-400 mx-1">·</span>
-                <span class="text-gray-400">{{ $t('edit_requests.break_end_label') }} </span>
+                <span class="text-gray-400 mr-1">{{ $t('edit_requests.break_end_label') }}</span>
                 <span class="font-mono">{{ formatTime(req.original_data?.break_end_at) }}</span>
                 <span class="text-gray-400 ml-1">({{ req.original_data?.duration_minutes }} min)</span>
               </div>
             </template>
             <template v-else-if="req.type === 'break_edit'">
               <div v-if="req.requested_data?.break_start_at" class="text-xs">
-                <span class="text-gray-400">{{ $t('edit_requests.break_start_label') }} </span>
+                <span class="text-gray-400 mr-1">{{ $t('edit_requests.break_start_label') }}</span>
                 <template v-if="isSameTime(req.original_data?.break_start_at, req.requested_data?.break_start_at)">
                   <span class="font-mono">{{ formatTime(req.original_data?.break_start_at) }}</span>
                 </template>
@@ -135,7 +137,7 @@
                 </template>
               </div>
               <div v-if="req.requested_data?.break_end_at" class="text-xs">
-                <span class="text-gray-400">{{ $t('edit_requests.break_end_label') }} </span>
+                <span class="text-gray-400 mr-1">{{ $t('edit_requests.break_end_label') }}</span>
                 <template v-if="isSameTime(req.original_data?.break_end_at, req.requested_data?.break_end_at)">
                   <span class="font-mono">{{ formatTime(req.original_data?.break_end_at) }}</span>
                 </template>
@@ -210,15 +212,189 @@
             </template>
           </div>
         </div>
+        </div>
+
+        <!-- ── Mòbil ──────────────────────────────────────────────────────── -->
+        <div class="sm:hidden divide-y divide-gray-100">
+          <div v-for="req in requests" :key="req.id"
+               class="px-4 py-3 flex items-center gap-3"
+               :class="req.initiated_by === 'admin' ? 'bg-purple-50/30' : ''">
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-medium text-gray-900 truncate">
+                {{ req.employee?.nom }} {{ req.employee?.cognoms }}
+              </p>
+              <div class="flex items-center gap-1.5 mt-1 flex-wrap">
+                <p class="text-xs text-gray-400 capitalize">{{ formatDateLong(req.created_at) }}</p>
+                <span class="text-[10px] font-medium px-1.5 py-0.5 rounded-full" :class="typeBadge(req.type)">
+                  {{ typeLabel(req.type) }}
+                </span>
+              </div>
+            </div>
+            <button @click="openDetail(req)"
+                    class="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors flex-shrink-0"
+                    :title="$t('edit_requests.view_details')">
+              <IconEye class="w-4 h-4" />
+            </button>
+          </div>
+        </div>
       </template>
     </div>
+
+    <!-- ── Modal detalls (mòbil) ─────────────────────────────────────────────── -->
+    <Teleport to="body">
+      <div v-if="detailTarget" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" @click.self="detailTarget = null">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-md max-h-[90vh] flex flex-col">
+          <div class="flex items-center justify-between px-5 py-4 border-b flex-shrink-0">
+            <h3 class="font-medium text-gray-900">{{ $t('edit_requests.details_title') }}</h3>
+            <button @click="detailTarget = null" class="text-gray-400 hover:text-gray-600"><IconX class="w-5 h-5" /></button>
+          </div>
+
+          <div class="overflow-y-auto flex-1 px-5 py-4 space-y-4">
+            <!-- Empleat + data + origen -->
+            <div>
+              <p class="text-sm font-medium text-gray-900">
+                {{ detailTarget.employee?.nom }} {{ detailTarget.employee?.cognoms }}
+              </p>
+              <div class="flex flex-wrap items-center gap-1.5 mt-1">
+                <p class="text-xs text-gray-400 capitalize">{{ formatDateLong(detailTarget.time_entry?.date) }}</p>
+                <span class="text-[10px] font-medium px-1.5 py-0.5 rounded-full" :class="typeBadge(detailTarget.type)">
+                  {{ typeLabel(detailTarget.type) }}
+                </span>
+                <span v-if="detailTarget.initiated_by === 'admin'"
+                      class="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-purple-100 text-purple-700">
+                  {{ $t('edit_requests.by_admin') }}
+                </span>
+                <span class="text-[10px] font-medium px-1.5 py-0.5 rounded-full" :class="statusBadge(detailTarget.status)">
+                  {{ statusLabel(detailTarget.status) }}
+                </span>
+              </div>
+              <p class="text-[10px] text-gray-400 mt-1">{{ timeAgo(detailTarget.created_at) }}</p>
+            </div>
+
+            <!-- Canvis proposats -->
+            <div class="border-t pt-3 space-y-1.5">
+              <p class="text-[11px] font-medium text-gray-400 uppercase tracking-wider mb-1">{{ $t('edit_requests.col_change') }}</p>
+              <template v-if="detailTarget.type === 'delete'">
+                <div class="text-xs text-gray-500">
+                  <span class="text-gray-400 mr-1">{{ $t('edit_requests.entry_label') }}</span>
+                  <span class="font-mono">{{ formatTime(detailTarget.original_data?.clock_in_at) }}</span>
+                  <span v-if="detailTarget.original_data?.clock_out_at">
+                    <span class="text-gray-400 mx-1">·</span>
+                    <span class="text-gray-400 mr-1">{{ $t('edit_requests.exit_label') }}</span>
+                    <span class="font-mono">{{ formatTime(detailTarget.original_data?.clock_out_at) }}</span>
+                  </span>
+                </div>
+              </template>
+              <template v-else-if="detailTarget.type === 'edit'">
+                <div v-if="detailTarget.requested_data?.clock_in_at" class="text-xs">
+                  <span class="text-gray-400 mr-1">{{ $t('edit_requests.entry_label') }}</span>
+                  <template v-if="isSameTime(detailTarget.original_data?.clock_in_at, detailTarget.requested_data?.clock_in_at)">
+                    <span class="font-mono">{{ formatTime(detailTarget.original_data?.clock_in_at) }}</span>
+                  </template>
+                  <template v-else>
+                    <span class="font-mono text-gray-500 line-through">{{ fmtEdit(detailTarget.original_data?.clock_in_at, detailTarget.requested_data?.clock_in_at) }}</span>
+                    <span class="mx-1 text-gray-400">→</span>
+                    <span class="font-mono font-medium text-blue-700">{{ fmtEdit(detailTarget.requested_data?.clock_in_at, detailTarget.original_data?.clock_in_at) }}</span>
+                  </template>
+                </div>
+                <div v-if="detailTarget.requested_data?.clock_out_at" class="text-xs">
+                  <span class="text-gray-400 mr-1">{{ $t('edit_requests.exit_label') }}</span>
+                  <template v-if="isSameTime(detailTarget.original_data?.clock_out_at, detailTarget.requested_data?.clock_out_at)">
+                    <span class="font-mono">{{ formatTime(detailTarget.original_data?.clock_out_at) }}</span>
+                  </template>
+                  <template v-else>
+                    <span class="font-mono text-gray-500 line-through">{{ fmtEdit(detailTarget.original_data?.clock_out_at, detailTarget.requested_data?.clock_out_at) }}</span>
+                    <span class="mx-1 text-gray-400">→</span>
+                    <span class="font-mono font-medium text-blue-700">{{ fmtEdit(detailTarget.requested_data?.clock_out_at, detailTarget.original_data?.clock_out_at) }}</span>
+                  </template>
+                </div>
+              </template>
+              <template v-else-if="detailTarget.type === 'break_delete'">
+                <div class="text-xs text-gray-500">
+                  <span class="text-gray-400 mr-1">{{ $t('edit_requests.break_start_label') }}</span>
+                  <span class="font-mono">{{ formatTime(detailTarget.original_data?.break_start_at) }}</span>
+                  <span class="text-gray-400 mx-1">·</span>
+                  <span class="text-gray-400 mr-1">{{ $t('edit_requests.break_end_label') }}</span>
+                  <span class="font-mono">{{ formatTime(detailTarget.original_data?.break_end_at) }}</span>
+                  <span class="text-gray-400 ml-1">({{ detailTarget.original_data?.duration_minutes }} min)</span>
+                </div>
+              </template>
+              <template v-else-if="detailTarget.type === 'break_edit'">
+                <div v-if="detailTarget.requested_data?.break_start_at" class="text-xs">
+                  <span class="text-gray-400 mr-1">{{ $t('edit_requests.break_start_label') }}</span>
+                  <template v-if="isSameTime(detailTarget.original_data?.break_start_at, detailTarget.requested_data?.break_start_at)">
+                    <span class="font-mono">{{ formatTime(detailTarget.original_data?.break_start_at) }}</span>
+                  </template>
+                  <template v-else>
+                    <span class="font-mono text-gray-500 line-through">{{ fmtEdit(detailTarget.original_data?.break_start_at, detailTarget.requested_data?.break_start_at) }}</span>
+                    <span class="mx-1 text-gray-400">→</span>
+                    <span class="font-mono font-medium text-blue-700">{{ fmtEdit(detailTarget.requested_data?.break_start_at, detailTarget.original_data?.break_start_at) }}</span>
+                  </template>
+                </div>
+                <div v-if="detailTarget.requested_data?.break_end_at" class="text-xs">
+                  <span class="text-gray-400 mr-1">{{ $t('edit_requests.break_end_label') }}</span>
+                  <template v-if="isSameTime(detailTarget.original_data?.break_end_at, detailTarget.requested_data?.break_end_at)">
+                    <span class="font-mono">{{ formatTime(detailTarget.original_data?.break_end_at) }}</span>
+                  </template>
+                  <template v-else>
+                    <span class="font-mono text-gray-500 line-through">{{ fmtEdit(detailTarget.original_data?.break_end_at, detailTarget.requested_data?.break_end_at) }}</span>
+                    <span class="mx-1 text-gray-400">→</span>
+                    <span class="font-mono font-medium text-blue-700">{{ fmtEdit(detailTarget.requested_data?.break_end_at, detailTarget.original_data?.break_end_at) }}</span>
+                  </template>
+                </div>
+              </template>
+            </div>
+
+            <!-- Motiu + nota -->
+            <div class="border-t pt-3">
+              <p class="text-[11px] font-medium text-gray-400 uppercase tracking-wider mb-1">{{ $t('edit_requests.col_reason') }}</p>
+              <p class="text-xs text-gray-600 leading-relaxed">{{ detailTarget.reason }}</p>
+              <p v-if="detailTarget.review_note" class="text-xs text-gray-400 mt-1 italic">
+                {{ $t('common.note') }}: "{{ detailTarget.review_note }}"
+              </p>
+            </div>
+
+            <!-- Accions -->
+            <div class="border-t pt-3">
+              <template v-if="detailTarget.status === 'pending'">
+                <template v-if="detailTarget.initiated_by === 'employee'">
+                  <textarea v-model="reviewNote" rows="2" :placeholder="$t('edit_requests.note_optional')"
+                            class="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2" />
+                  <div class="flex gap-2">
+                    <button @click="denyFromModal(detailTarget.id)" :disabled="actionSaving"
+                            class="flex-1 px-3 py-2 text-xs font-medium bg-red-600 hover:bg-red-700 text-white rounded-lg disabled:opacity-60">
+                      {{ actionSaving ? $t('common.loading_short') : $t('common.deny') }}
+                    </button>
+                    <button @click="approveFromModal(detailTarget.id)" :disabled="actionSaving"
+                            class="flex-1 px-3 py-2 text-xs font-medium bg-green-600 hover:bg-green-700 text-white rounded-lg disabled:opacity-60">
+                      {{ actionSaving ? $t('common.loading_short') : $t('common.accept') }}
+                    </button>
+                  </div>
+                </template>
+                <template v-else>
+                  <span class="text-xs text-purple-600 font-medium">{{ $t('edit_requests.pending_employee') }}</span>
+                </template>
+              </template>
+              <template v-else>
+                <div class="text-xs text-gray-400">
+                  <span v-if="detailTarget.reviewed_by">
+                    {{ detailTarget.status === 'approved' ? $t('edit_requests.approved_by', { name: detailTarget.reviewed_by?.name }) : $t('edit_requests.denied_by', { name: detailTarget.reviewed_by?.name }) }}
+                  </span>
+                  <p v-if="detailTarget.reviewed_at" class="text-[10px] mt-0.5">{{ timeAgo(detailTarget.reviewed_at) }}</p>
+                </div>
+              </template>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { IconClipboardCheck } from '@tabler/icons-vue'
+import { IconClipboardCheck, IconEye, IconX } from '@tabler/icons-vue'
 import api from '../services/api'
 
 const { t, locale } = useI18n()
@@ -266,8 +442,10 @@ async function confirmApprove(id) {
     await api.post(`/v1/time-entry-edit-requests/${id}/approve`, { note: reviewNote.value || null })
     cancelReview()
     await fetchRequests()
+    return true
   } catch (e) {
     alert(e?.response?.data?.message || t('edit_requests.error_approve'))
+    return false
   } finally { actionSaving.value = false }
 }
 
@@ -277,9 +455,27 @@ async function confirmDeny(id) {
     await api.post(`/v1/time-entry-edit-requests/${id}/deny`, { note: reviewNote.value || null })
     cancelReview()
     await fetchRequests()
+    return true
   } catch (e) {
     alert(e?.response?.data?.message || t('edit_requests.error_deny'))
+    return false
   } finally { actionSaving.value = false }
+}
+
+// ── Modal detalls (mòbil) ──────────────────────────────────────────────────────
+const detailTarget = ref(null)
+
+function openDetail(req) {
+  detailTarget.value = req
+  reviewNote.value    = ''
+}
+
+async function approveFromModal(id) {
+  if (await confirmApprove(id)) detailTarget.value = null
+}
+
+async function denyFromModal(id) {
+  if (await confirmDeny(id)) detailTarget.value = null
 }
 
 // ── Formats ───────────────────────────────────────────────────────────────────
@@ -309,12 +505,24 @@ function timeAgo(iso) {
   if (!iso) return ''
   const diff = Date.now() - new Date(iso).getTime()
   const mins = Math.floor(diff / 60000)
-  if (mins < 2)   return t('notifications.now')
-  if (mins < 60)  return `${t('common.ago_prefix')} ${mins} ${t('common.minutes_short')}`
-  const hours = Math.floor(mins / 60)
-  if (hours < 24) return `${t('common.ago_prefix')} ${hours}${t('common.hours_short')}`
-  const days = Math.floor(hours / 24)
-  return `${t('common.ago_prefix')} ${days} ${days === 1 ? t('common.days_one') : t('common.days_other')}`
+  if (mins < 2) return t('notifications.now')
+
+  let amount
+  if (mins < 60) {
+    amount = `${mins} ${t('common.minutes_short')}`
+  } else {
+    const hours = Math.floor(mins / 60)
+    if (hours < 24) {
+      amount = `${hours}${t('common.hours_short')}`
+    } else {
+      const days = Math.floor(hours / 24)
+      amount = `${days} ${days === 1 ? t('common.days_one') : t('common.days_other')}`
+    }
+  }
+
+  return locale.value === 'en'
+    ? `${amount} ${t('common.ago_prefix')}`
+    : `${t('common.ago_prefix')} ${amount}`
 }
 function typeBadge(t_type) {
   return {

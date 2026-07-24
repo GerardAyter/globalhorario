@@ -22,8 +22,8 @@ class TimeEntryEditRequestController extends BaseController
         }
 
         $validated = $request->validate([
-            'clock_in_at'  => 'nullable|date_format:Y-m-d\TH:i',
-            'clock_out_at' => 'nullable|date_format:Y-m-d\TH:i',
+            'clock_in_at'  => 'nullable|date',
+            'clock_out_at' => 'nullable|date',
             'reason'       => 'required|string|max:500',
         ]);
 
@@ -75,8 +75,8 @@ class TimeEntryEditRequestController extends BaseController
         }
 
         $validated = $request->validate([
-            'break_start_at' => 'nullable|date_format:Y-m-d\TH:i',
-            'break_end_at'   => 'nullable|date_format:Y-m-d\TH:i',
+            'break_start_at' => 'nullable|date',
+            'break_end_at'   => 'nullable|date',
             'reason'         => 'required|string|max:500',
         ]);
 
@@ -119,8 +119,8 @@ class TimeEntryEditRequestController extends BaseController
     {
         $entry = TimeEntry::with('employee.user')->findOrFail($id);
         $validated = $request->validate([
-            'clock_in_at'  => 'nullable|date_format:Y-m-d\TH:i',
-            'clock_out_at' => 'nullable|date_format:Y-m-d\TH:i',
+            'clock_in_at'  => 'nullable|date',
+            'clock_out_at' => 'nullable|date',
             'reason'       => 'required|string|max:500',
         ]);
         $requestedData = array_filter(['clock_in_at' => $validated['clock_in_at'] ?? null, 'clock_out_at' => $validated['clock_out_at'] ?? null], fn($v) => $v !== null);
@@ -153,8 +153,8 @@ class TimeEntryEditRequestController extends BaseController
     {
         $break = TimeEntryBreak::findOrFail($breakId);
         $validated = $request->validate([
-            'break_start_at' => 'nullable|date_format:Y-m-d\TH:i',
-            'break_end_at'   => 'nullable|date_format:Y-m-d\TH:i',
+            'break_start_at' => 'nullable|date',
+            'break_end_at'   => 'nullable|date',
             'reason'         => 'required|string|max:500',
         ]);
         $requestedData = array_filter(['break_start_at' => $validated['break_start_at'] ?? null, 'break_end_at' => $validated['break_end_at'] ?? null], fn($v) => $v !== null);

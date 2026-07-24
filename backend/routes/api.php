@@ -31,6 +31,20 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::prefix('v1')->group(function () {
 
+        // Balanç propi (tots els usuaris autenticats). Ha d'anar declarada
+        // abans de qualsevol apiResource('vacation-balances', ...) perquè
+        // Laravel fa matching per ordre de registre: si no, "my" es
+        // capturaria com a {vacation_balance} de la ruta show/update/destroy.
+        Route::get('vacation-balances/my', [VacationBalanceController::class, 'my']);
+
+        // Perfil de l'empresa pròpia (Admin+). Mateix motiu que l'anterior:
+        // ha d'anar abans de l'apiResource('companies', ...) del bloc superadmin.
+        Route::middleware('role:admin')->group(function () {
+            Route::get('companies/my',  [CompanyController::class, 'my']);
+            Route::put('companies/my',  [CompanyController::class, 'updateMy']);
+            Route::patch('companies/my', [CompanyController::class, 'updateMy']);
+        });
+
         // ── Founder ─────────────────────────────────────────────────────────
         // Gestió global de tenants i configuració whitelabel
         Route::middleware('role:founder')->group(function () {
@@ -119,9 +133,10 @@ Route::middleware('auth:sanctum')->group(function () {
         // Festius (lectura per a tots els usuaris)
         Route::get('holidays', [HolidayController::class, 'index']);
 
-        // Documents (lectura i descàrrega per a tots els usuaris autenticats)
+        // Documents (lectura, descàrrega i pujada pròpia per a tots els usuaris autenticats)
         Route::get('documents',                [DocumentController::class, 'index']);
         Route::get('documents/{id}/download',  [DocumentController::class, 'download']);
+        Route::post('documents/self',          [DocumentController::class, 'storeSelf']);
 
         // Notificacions
         Route::get('notifications/my',          [NotificationController::class, 'my']);
@@ -131,7 +146,6 @@ Route::middleware('auth:sanctum')->group(function () {
         // Absències: lectura de tipus i gestió de les pròpies sol·licituds
         Route::get('absence-types', [AbsenceTypeController::class, 'index']);
         Route::get('absence-requests/my', [AbsenceRequestController::class, 'my']);
-        Route::get('vacation-balances/my', [VacationBalanceController::class, 'my']);
         Route::apiResource('absence-requests', AbsenceRequestController::class)->except(['index', 'update']);
         Route::delete('absence-requests/{id}/cancel', [AbsenceRequestController::class, 'destroy']);
 

@@ -9,37 +9,39 @@
     </div>
 
     <!-- Filtres -->
-    <div class="bg-white border border-gray-200 rounded-xl px-5 py-3 mb-4 flex flex-wrap items-center gap-3">
+    <div class="bg-white border border-gray-200 rounded-xl px-3 sm:px-5 py-3 mb-4 flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-3">
       <div class="flex items-center gap-2">
         <button @click="prevMonth"
-                class="w-7 h-7 flex items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50">
+                class="w-7 h-7 flex-shrink-0 flex items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50">
           <IconChevronLeft class="w-3.5 h-3.5" />
         </button>
         <select v-model.number="selectedMonth"
-                class="text-sm border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                class="flex-1 min-w-0 sm:flex-initial text-sm border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500">
           <option v-for="(name, idx) in MONTHS" :key="idx" :value="idx + 1">{{ name }}</option>
         </select>
         <select v-model.number="selectedYear"
-                class="text-sm border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                class="flex-shrink-0 text-sm border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500">
           <option v-for="y in yearOptions" :key="y" :value="y">{{ y }}</option>
         </select>
         <button @click="nextMonth" :disabled="isCurrentMonth"
-                class="w-7 h-7 flex items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50">
+                class="w-7 h-7 flex-shrink-0 flex items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50">
           <IconChevronRight class="w-3.5 h-3.5" :class="isCurrentMonth ? 'opacity-30' : ''" />
         </button>
       </div>
 
-      <div class="h-5 border-l border-gray-200" />
+      <div class="hidden sm:block h-5 border-l border-gray-200" />
 
-      <select v-model.number="selectedEmployee"
-              class="text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[180px]">
-        <option :value="null">{{ $t('time_tracking.all_employees') }}</option>
-        <option v-for="emp in employees" :key="emp.id" :value="emp.id">
-          {{ emp.nom }} {{ emp.cognoms }}
-        </option>
-      </select>
+      <div class="flex items-center gap-3 sm:contents">
+        <select v-model.number="selectedEmployee"
+                class="flex-1 min-w-0 sm:flex-initial text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 sm:min-w-[180px]">
+          <option :value="null">{{ $t('time_tracking.all_employees') }}</option>
+          <option v-for="emp in employees" :key="emp.id" :value="emp.id">
+            {{ emp.nom }} {{ emp.cognoms }}
+          </option>
+        </select>
 
-      <span class="ml-auto text-xs text-gray-400">{{ $t('time_tracking.records_count', { n: entries.length }) }}</span>
+        <span class="flex-shrink-0 whitespace-nowrap text-xs text-gray-400 sm:ml-auto">{{ $t('time_tracking.records_count', { n: entries.length }) }}</span>
+      </div>
     </div>
 
     <!-- Taula -->
@@ -48,11 +50,9 @@
       <!-- Skeleton -->
       <div v-if="loading" class="divide-y divide-gray-100">
         <div v-for="i in 6" :key="i" class="px-5 py-3 flex items-center gap-4">
-          <div class="w-24 h-4 bg-gray-100 animate-pulse rounded" />
           <div class="w-32 h-4 bg-gray-100 animate-pulse rounded" />
-          <div class="w-16 h-4 bg-gray-100 animate-pulse rounded" />
-          <div class="w-16 h-4 bg-gray-100 animate-pulse rounded" />
           <div class="flex-1 h-4 bg-gray-100 animate-pulse rounded" />
+          <div class="w-20 h-4 bg-gray-100 animate-pulse rounded" />
         </div>
       </div>
 
@@ -65,28 +65,20 @@
 
       <template v-else>
         <!-- Cap taula -->
-        <div class="px-5 py-2 bg-gray-50 border-b grid grid-cols-[1.2fr_1.6fr_auto_auto_1fr_auto_auto] gap-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider">
+        <div class="px-5 py-2 bg-gray-50 border-b grid grid-cols-[1.4fr_2fr_auto] gap-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider">
           <span>{{ $t('time_tracking.col_employee') }}</span>
-          <span>{{ $t('time_tracking.col_date') }}</span>
-          <span class="w-20 text-center">{{ $t('time_tracking.col_entry') }}</span>
-          <span class="w-20 text-center">{{ $t('time_tracking.col_exit') }}</span>
-          <span>{{ $t('time_tracking.col_breaks') }}</span>
-          <span class="w-20 text-center">{{ $t('time_tracking.col_effective') }}</span>
+          <span>{{ $t('time_tracking.col_schedule') }}</span>
           <span class="w-24 text-right">{{ $t('common.actions') }}</span>
         </div>
 
         <div v-for="e in entries" :key="e.id"
-             class="px-5 py-3 border-b last:border-0 grid grid-cols-[1.2fr_1.6fr_auto_auto_1fr_auto_auto] gap-4 items-start hover:bg-gray-50/60 transition-colors">
+             class="px-5 py-3 border-b last:border-0 grid grid-cols-[1.4fr_2fr_auto] gap-4 items-start hover:bg-gray-50/60 transition-colors">
 
-          <!-- Empleat -->
-          <div class="pt-0.5">
+          <!-- Empleat + data -->
+          <div class="pt-0.5 min-w-0">
             <p class="text-sm font-medium text-gray-900 truncate">{{ e.employee?.nom }} {{ e.employee?.cognoms }}</p>
-          </div>
-
-          <!-- Data + estat -->
-          <div>
-            <p class="text-sm font-medium text-gray-800 capitalize">{{ formatDate(e.date) }}</p>
-            <div class="flex flex-wrap items-center gap-1 mt-0.5">
+            <p class="text-xs text-gray-500 capitalize mt-0.5">{{ formatDate(e.date) }}</p>
+            <div class="flex flex-wrap items-center gap-1 mt-1">
               <span class="text-[10px] font-medium px-1.5 py-0.5 rounded-full" :class="statusBadge(e.work_status)">
                 {{ statusLabel(e.work_status) }}
               </span>
@@ -101,26 +93,27 @@
             </div>
           </div>
 
-          <!-- Entrada -->
-          <div class="w-20 text-center pt-0.5">
-            <span class="flex items-center justify-center gap-1 text-sm text-gray-700">
-              <IconLogin class="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
-              {{ formatTime(e.clock_in_at) }}
-            </span>
-          </div>
-
-          <!-- Sortida -->
-          <div class="w-20 text-center pt-0.5">
-            <span v-if="e.clock_out_at" class="flex items-center justify-center gap-1 text-sm text-gray-700">
-              <IconLogout class="w-3.5 h-3.5 text-red-400 flex-shrink-0" />
-              {{ formatTime(e.clock_out_at) }}
-            </span>
-            <span v-else class="text-xs text-amber-600 font-medium">{{ $t('time_tracking.in_progress') }}</span>
-          </div>
-
-          <!-- Pauses -->
+          <!-- Horari: entrada, sortida, efectiu i pauses -->
           <div class="pt-0.5">
-            <div v-if="completedBreaks(e).length > 0" class="space-y-0.5">
+            <div class="flex items-center gap-3 flex-wrap text-sm text-gray-700">
+              <span class="flex items-center gap-1">
+                <IconLogin class="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
+                {{ formatTime(e.clock_in_at) }}
+              </span>
+              <span class="text-gray-300">→</span>
+              <span v-if="e.clock_out_at" class="flex items-center gap-1">
+                <IconLogout class="w-3.5 h-3.5 text-red-400 flex-shrink-0" />
+                {{ formatTime(e.clock_out_at) }}
+              </span>
+              <span v-else class="text-xs text-amber-600 font-medium">{{ $t('time_tracking.in_progress') }}</span>
+              <span v-if="e.effective_minutes != null" class="text-xs font-mono font-medium"
+                    :class="e.effective_minutes < 420 ? 'text-amber-600' : 'text-gray-500'">
+                {{ formatDuration(e.effective_minutes) }}
+              </span>
+            </div>
+
+            <!-- Pauses -->
+            <div v-if="completedBreaks(e).length > 0" class="space-y-0.5 mt-1.5">
               <div v-for="(b, bi) in completedBreaks(e)" :key="bi"
                    class="group flex items-center gap-1 text-xs text-gray-500">
                 <IconCoffee class="w-3 h-3 text-gray-400 flex-shrink-0" />
@@ -140,16 +133,6 @@
                 </div>
               </div>
             </div>
-            <span v-else class="text-sm text-gray-300">—</span>
-          </div>
-
-          <!-- Efectiu -->
-          <div class="w-20 text-center pt-0.5">
-            <span v-if="e.effective_minutes != null" class="text-sm font-mono font-medium"
-                  :class="e.effective_minutes < 420 ? 'text-amber-600' : 'text-gray-800'">
-              {{ formatDuration(e.effective_minutes) }}
-            </span>
-            <span v-else class="text-sm text-gray-300">—</span>
           </div>
 
           <!-- Accions -->
@@ -611,7 +594,7 @@ function toDatetimeLocal(iso) {
 }
 function localToUtc(s) {
   if (!s) return null
-  return new Date(s).toISOString().slice(0, 16)
+  return new Date(s).toISOString()
 }
 function statusBadge(s) {
   return { clocked_in: 'bg-green-50 text-green-700', on_break: 'bg-amber-50 text-amber-700', clocked_out: 'bg-gray-100 text-gray-500' }[s] || 'bg-gray-100 text-gray-500'
