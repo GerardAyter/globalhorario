@@ -18,7 +18,9 @@ class TimeEntryController extends BaseController
 
     public function index(Request $request)
     {
-        $data = $this->service->list($request->all());
+        $user      = $request->user();
+        $companyId = $user->company_id ?? $user->employee?->company_id;
+        $data      = $this->service->list($companyId ? ['company_id' => $companyId] : []);
         return $this->success($data);
     }
 

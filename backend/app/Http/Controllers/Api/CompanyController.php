@@ -206,6 +206,7 @@ class CompanyController extends BaseController
 
     private function resolveOwnCompany(Request $request): ?Company
     {
+        /** @var User $user */
         $user      = $request->user();
         $companyId = $user->company_id ?? $user->employee?->company_id;
         if (! $companyId) return null;
@@ -228,8 +229,10 @@ class CompanyController extends BaseController
         $ext  = $matches[1] ?? 'png';
         $data = str_contains($base64, ',') ? explode(',', $base64, 2)[1] : $base64;
         $path = "{$folder}/company_{$companyId}_{$prefix}.{$ext}";
-        Storage::disk('public')->put($path, base64_decode($data));
-        return Storage::disk('public')->url($path);
+        /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
+        $disk = Storage::disk('public');
+        $disk->put($path, base64_decode($data));
+        return $disk->url($path);
     }
 
     private function syncModules(int $companyId, array $modules): void

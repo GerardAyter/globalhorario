@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Models\PlanFeatureFlag;
+use App\Models\Tenant;
 use App\Models\User;
 use App\Models\WhitelabelConfig;
 use App\Services\TenantService;
@@ -11,6 +12,7 @@ use App\Http\Requests\TenantUpdateRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 
 class TenantController extends BaseController
 {
@@ -137,6 +139,60 @@ class TenantController extends BaseController
         }
         $this->service->delete($item);
         return $this->success(null, 'Tenant deleted', null, 204);
+    }
+
+    /** Perfil del distribuïdor propi (Superadmin+) */
+    public function my(Request $request)
+    {
+        $tenant = $this->resolveOwnTenant($request);
+        if (! $tenant) {
+            return $this->error("No s'ha trobat el distribuïdor", null, 404);
+        }
+        return $this->success($tenant->load('whitelabel'));
+    }
+
+    /** Actualitzar el distribuïdor propi (Superadmin+, dades i logos únicament) */
+    public function updateMy(Request $request)
+    {
+        $tenant = $this->resolveOwnTenant($request);
+        if (! $tenant) {
+            return $this->error("No s'ha trobat el distribuïdor", null, 404);
+        }
+
+        $validated = $request->validate([
+            'nom_intern'        => ['required', 'string', 'max:255', Rule::unique('tenants', 'nom_intern')->ignore($tenant->id)],
+            'nom_legal'         => 'nullable|string|max:255',
+            'nif'               => 'nullable|string|max:100',
+            'adreca_facturacio' => 'nullable|string|max:500',
+            'telefon'           => 'nullable|string|max:30',
+            'email_contacte'    => 'nullable|email|max:255',
+            'persona_contacte'  => 'nullable|string|max:255',
+            'logo_base64'       => 'nullable|string',
+            'favicon_base64'    => 'nullable|string',
+        ]);
+
+        $logoBase64    = $validated['logo_base64']    ?? null;
+        $faviconBase64 = $validated['favicon_base64'] ?? null;
+        unset($validated['logo_base64'], $validated['favicon_base64']);
+
+        $this->service->update($tenant, $validated);
+
+        $logoUrl    = $logoBase64    ? $this->saveImage($tenant->id, $logoBase64,    'logos',    'logo')    : null;
+        $faviconUrl = $faviconBase64 ? $this->saveImage($tenant->id, $faviconBase64, 'favicons', 'favicon') : null;
+
+        if ($logoUrl !== null || $faviconUrl !== null) {
+            $this->syncWhitelabel($tenant->id, $logoUrl, $faviconUrl);
+        }
+
+        return $this->success($this->service->findWithRelations($tenant->id), 'Distribuïdor actualitzat');
+    }
+
+    private function resolveOwnTenant(Request $request): ?Tenant
+    {
+        /** @var User $user */
+        $user = $request->user();
+        if (! $user->tenant_id) return null;
+        return $this->service->find($user->tenant_id);
     }
 
     private function saveImage(int $tenantId, string $base64, string $folder, string $prefix): string

@@ -3,10 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Traits\HasCompanySharding;
 
 class TimeEntryLog extends Model
 {
-    protected $table = 'time_entry_logs';
+    use HasCompanySharding;
+
+    protected static string $shardBaseTable = 'time_entry_logs';
 
     public $timestamps = false;
 

@@ -13,6 +13,8 @@ use Illuminate\Support\Facades\Log;
 use App\Models\WhatsappEvent;
 use App\Models\TimeEntry;
 use App\Models\VacationBalance;
+use App\Models\Employee;
+use App\Services\CompanyContext;
 
 class ProcessWhatsappMessage implements ShouldQueue
 {
@@ -63,10 +65,19 @@ class ProcessWhatsappMessage implements ShouldQueue
             $session = $event->session;
             $employeeId = $session?->employee_id;
 
+            // Les taules de marcatges estan repartides per empresa (veure
+            // HasCompanySharding); com que aquest job corre fora del cicle
+            // de request HTTP, cal fixar el context manualment.
             if (in_array($intent, ['fichar_entrada', 'fichar_sortida'])) {
                 if (! $employeeId) {
                     throw new \Exception('Employee not linked to session');
                 }
+
+                $employee = Employee::find($employeeId);
+                if (! $employee || ! $employee->company_id) {
+                    throw new \Exception('Employee has no company assigned');
+                }
+                CompanyContext::setCompanyId($employee->company_id);
 
                 if ($intent === 'fichar_entrada') {
                     $te = TimeEntry::create([
@@ -113,6 +124,11 @@ class ProcessWhatsappMessage implements ShouldQueue
             $event->estat_proc = 'error';
             $event->error_msg = $e->getMessage();
             $event->save();
+        } finally {
+            // El worker de cua és un procés de llarga durada que processa
+            // múltiples jobs seguits: cal netejar el context perquè no
+            // s'arrossegui a la propera feina que processi aquest worker.
+            CompanyContext::clear();
         }
     }
 

@@ -153,7 +153,7 @@
             </div>
           </template>
 
-          <template v-if="sidebar.gestio.length">
+          <template v-if="hasCompany && sidebar.gestio.length">
             <div class="text-[10px] text-gray-400 font-medium tracking-wider px-3 mt-4 mb-1">{{ $t('sidebar.management_section') }}</div>
             <div v-for="item in sidebar.gestio" :key="item.name"
                  @click="go(item)"
@@ -479,8 +479,14 @@ const sidebar = computed(() => {
       { name: 'documents',   label: t('sidebar.documents'),  icon: IconReportAnalytics, path: '/documents'                   },
       { name: 'settings',    label: t('sidebar.settings'),   icon: IconSettings,        path: '/settings',    minRole: 'admin' },
     ].filter(i => !i.minRole || canAccess(i.minRole)),
-    distribucio: [{ name: 'companies', label: t('sidebar.companies'),    icon: IconBuildingSkyscraper, path: '/companies' }],
-    sistema:     [{ name: 'tenants',   label: t('sidebar.distributors'), icon: IconBuilding,           path: '/tenants'   }],
+    distribucio: [
+      { name: 'companies',       label: t('sidebar.companies'), icon: IconBuildingSkyscraper, path: '/companies' },
+      { name: 'tenant-settings', label: t('sidebar.settings'),  icon: IconSettings,            path: '/tenant-settings' },
+    ],
+    sistema: [
+      { name: 'tenants',           label: t('sidebar.distributors'),      icon: IconBuilding, path: '/tenants' },
+      { name: 'platform-settings', label: t('sidebar.platform_settings'), icon: IconSettings, path: '/platform-settings' },
+    ],
   }
 })
 

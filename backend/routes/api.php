@@ -18,6 +18,7 @@ use App\Http\Controllers\Api\HolidayController;
 use App\Http\Controllers\Api\ConveniController;
 use App\Http\Controllers\Api\TimeEntryEditRequestController;
 use App\Http\Controllers\Api\DocumentController;
+use App\Http\Controllers\Api\PlatformSettingController;
 
 // ── Públic ──────────────────────────────────────────────────────────────────
 Route::post('auth/login',        [AuthController::class, 'login']);
@@ -45,11 +46,23 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::patch('companies/my', [CompanyController::class, 'updateMy']);
         });
 
+        // Perfil del distribuïdor propi (Superadmin+). Ha d'anar declarada
+        // abans de l'apiResource('tenants', ...) del bloc founder, pel mateix
+        // motiu que "companies/my" i "vacation-balances/my".
+        Route::middleware('role:superadmin')->group(function () {
+            Route::get('tenants/my',   [TenantController::class, 'my']);
+            Route::put('tenants/my',   [TenantController::class, 'updateMy']);
+            Route::patch('tenants/my', [TenantController::class, 'updateMy']);
+        });
+
         // ── Founder ─────────────────────────────────────────────────────────
-        // Gestió global de tenants i configuració whitelabel
+        // Gestió global de tenants, configuració whitelabel i plataforma
         Route::middleware('role:founder')->group(function () {
             Route::apiResource('tenants', TenantController::class);
             Route::apiResource('whitelabel-configs', WhitelabelConfigController::class);
+            Route::get('platform-settings',   [PlatformSettingController::class, 'show']);
+            Route::put('platform-settings',   [PlatformSettingController::class, 'update']);
+            Route::patch('platform-settings', [PlatformSettingController::class, 'update']);
         });
 
         // ── Superadmin+ ─────────────────────────────────────────────────────

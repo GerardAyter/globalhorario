@@ -5,18 +5,20 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Traits\HasTenant;
+use App\Models\Traits\HasCompanySharding;
 
 class TimeEntry extends Model
 {
     use HasFactory;
     use HasTenant;
+    use HasCompanySharding;
 
     const ORIGIN_MANUAL    = 'manual';
     const ORIGIN_MOBILE    = 'mobile';
     const ORIGIN_WEB       = 'web';
     const ORIGIN_WHATSAPP  = 'whatsapp';
 
-    protected $table = 'time_entries';
+    protected static string $shardBaseTable = 'time_entries';
 
     protected $fillable = [
         'tenant_id',

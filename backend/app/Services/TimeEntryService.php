@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\TimeEntry;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class TimeEntryService extends BaseService
 {
@@ -14,6 +15,13 @@ class TimeEntryService extends BaseService
      */
     public function list(array $filters = [])
     {
+        // Les taules de marcatges estan repartides per empresa: un usuari
+        // sense empresa pròpia (founder/superadmin gestionant múltiples
+        // empreses) no té una única taula a consultar aquí.
+        if (! isset($filters['company_id'])) {
+            return new LengthAwarePaginator([], 0, 20);
+        }
+
         return TimeEntry::with('user')->paginate(20);
     }
 

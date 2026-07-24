@@ -6,6 +6,8 @@ use App\Models\Company;
 
 class CompanyService extends BaseService
 {
+    public function __construct(private CompanyTableProvisioningService $tableProvisioning) {}
+
     public function list(array $filters = [])
     {
         $perPage = min((int)($filters['per_page'] ?? 20), 200);
@@ -34,7 +36,9 @@ class CompanyService extends BaseService
 
     public function create(array $data): Company
     {
-        return Company::create($data);
+        $company = Company::create($data);
+        $this->tableProvisioning->provisionForCompany($company->id);
+        return $company;
     }
 
     public function update(Company $company, array $data): Company

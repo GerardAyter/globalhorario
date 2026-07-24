@@ -3,10 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Traits\HasCompanySharding;
 
 class TimeEntryBreak extends Model
 {
-    protected $table = 'time_entry_breaks';
+    use HasCompanySharding;
+
+    protected static string $shardBaseTable = 'time_entry_breaks';
 
     protected $fillable = [
         'time_entry_id',

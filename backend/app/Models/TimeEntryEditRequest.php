@@ -3,10 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Traits\HasCompanySharding;
 
 class TimeEntryEditRequest extends Model
 {
-    protected $table = 'time_entry_edit_requests';
+    use HasCompanySharding;
+
+    protected static string $shardBaseTable = 'time_entry_edit_requests';
 
     protected $fillable = [
         'type',
